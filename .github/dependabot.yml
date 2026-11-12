@@ -1,0 +1,20 @@
+# Automatic dependency update PRs (reviewed and merged by you, validated by CI).
+version: 2
+updates:
+  - package-ecosystem: uv            # pyproject.toml + uv.lock
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      python-deps:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker        # base images in the Dockerfile
+    directory: /
+    schedule:
+      interval: monthly

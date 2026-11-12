@@ -1,0 +1,41 @@
+# ---- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# ---- Environments & secrets ------------------------------------------------
+.venv/
+.env
+.env.*
+!.env.example
+
+# ---- Tooling caches --------------------------------------------------------
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
+
+# ---- Data, models and run artifacts (never in git) -------------------------
+# Folders are kept with .gitkeep; their content is generated or versioned
+# with DVC/MLflow, not with git.
+data/**/*
+!data/**/
+!data/**/.gitkeep
+models/*
+!models/.gitkeep
+reports/*
+!reports/.gitkeep
+mlruns/
+mlartifacts/
+mlflow.db
+
+# ---- IDE / OS --------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

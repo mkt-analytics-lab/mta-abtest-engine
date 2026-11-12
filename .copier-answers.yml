@@ -1,0 +1,15 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v0.3.0
+_src_path: gh:damfello/mlops-project-template
+author_name: Duvan Fruto
+description: User-level multi-touch attribution and journey optimization
+package_name: mta_abtest_engine
+project_name: MTA AB Test Engine
+project_slug: mta-abtest-engine
+python_version: '3.13'
+run_setup: true
+use_compose: false
+use_dbt: false
+use_dvc: false
+use_monitoring: false
+use_prefect: false

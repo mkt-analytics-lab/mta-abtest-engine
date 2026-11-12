@@ -1,0 +1,10 @@
+# Normalise line endings to LF in the repository (avoids Windows CRLF noise
+# where every file shows as "modified").
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.joblib binary
+*.pkl binary
+*.parquet binary
+*.duckdb binary
