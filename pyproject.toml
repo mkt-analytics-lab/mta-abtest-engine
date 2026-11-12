@@ -41,6 +41,9 @@ serving = [
 training = [
     "mlflow>=3.0",
 ]
+dbt = [
+    "dbt-bigquery>=1.9",
+]
 notebooks = [
     "ipykernel>=6.29",
     "matplotlib>=3.9",
@@ -54,6 +57,7 @@ default-groups = [
     "dev",
     "serving",
     "training",
+    "dbt",
     "notebooks",
 ]
 
@@ -113,8 +117,19 @@ help = "Run the test suite with coverage"
 cmd = "pytest"
 
 [tool.poe.tasks.check]
-help = "Everything CI runs: lint + tests"
-sequence = ["lint", "test"]
+help = "Everything CI runs: lint + tests + dbt parse"
+sequence = ["lint", "test", "dbt-parse"]
+
+[tool.poe.tasks.dbt-parse]
+help = "Validate dbt project and SQL references (no BigQuery connection)"
+cmd = "dbt parse --project-dir dbt --profiles-dir dbt"
+# Parsing never connects, so any project id works (CI has no .env).
+env = { APP_GCP_PROJECT_ID = "parse-only" }
+
+[tool.poe.tasks.dbt-build]
+help = "Build dbt models and run data tests on BigQuery (needs .env + ADC)"
+cmd = "dbt build --project-dir dbt --profiles-dir dbt"
+envfile = ".env"
 
 [tool.poe.tasks.pipeline]
 help = "Run the full pipeline: ingest -> validate -> features -> train -> evaluate"

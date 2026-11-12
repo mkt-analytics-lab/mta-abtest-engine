@@ -34,6 +34,12 @@ mlruns/
 mlartifacts/
 mlflow.db
 
+# ---- dbt -------------------------------------------------------------------
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+
 # ---- IDE / OS --------------------------------------------------------------
 .vscode/
 .idea/

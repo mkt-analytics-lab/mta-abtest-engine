@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: stg_ga4__events
+    description: One row per GA4 event with typed date and timestamp.
+    columns:
+      - name: event_date
+        data_tests: [not_null]
+      - name: event_ts
+        data_tests: [not_null]
+      - name: event_name
+        data_tests: [not_null]

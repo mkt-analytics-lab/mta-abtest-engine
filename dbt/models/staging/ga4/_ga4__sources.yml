@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: ga4
+    description: GA4 obfuscated sample e-commerce export (public, Nov 2020 - Jan 2021).
+    database: bigquery-public-data
+    schema: ga4_obfuscated_sample_ecommerce
+    tables:
+      - name: events
+        identifier: events_*  # one shard per day: events_YYYYMMDD

@@ -30,6 +30,9 @@ jobs:
       - name: Tests
         run: uv run poe test
 
+      - name: dbt parse (no warehouse connection)
+        run: uv run poe dbt-parse
+
   docker:
     name: Docker build & smoke test
     runs-on: ubuntu-latest

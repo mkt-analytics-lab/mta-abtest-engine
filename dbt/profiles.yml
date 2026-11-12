@@ -1,0 +1,17 @@
+# BigQuery connection. No secrets here: authentication uses Application
+# Default Credentials (ADR 0004) and the project comes from APP_GCP_PROJECT_ID.
+mta_abtest_engine:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('APP_GCP_PROJECT_ID') }}"
+      dataset: mta
+      location: US  # same region as the GA4 public dataset
+      threads: 4
+      priority: interactive
+      job_execution_timeout_seconds: 300
+      # Cost guard (ADR 0003/0005): must equal bigquery.maximum_bytes_billed
+      # in configs/config.yaml (checked by tests/unit/test_dbt_project.py).
+      maximum_bytes_billed: 5368709120
