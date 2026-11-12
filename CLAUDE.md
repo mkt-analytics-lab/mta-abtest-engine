@@ -4,9 +4,33 @@ Context for AI assistants (Claude) working in this repository.
 
 ## Project context
 
-<!-- TODO: replace this section with the project description:
-     business problem, users, data sources, success metrics, scope. -->
-User-level multi-touch attribution and journey optimization
+**Problem.** Optimize the customer journey of an e-commerce site: find where
+users drop off and which touchpoints contribute to purchase, with an in-house,
+versioned attribution model that can be compared with GA4.
+
+**Users.**
+1. Marketing decision maker - fixes the journey, values touchpoints, targets
+   users (Looker Studio dashboard on BigQuery result tables).
+2. MLOps engineer / data team - evaluates, maintains and promotes model
+   versions (MLflow, evaluation reports, drift reports).
+
+**Data.** GA4 obfuscated sample e-commerce (`bigquery-public-data`,
+Nov 2020 - Jan 2021). Real-work ETL: incremental, idempotent loads; results
+written back to BigQuery. Tooling decided per phase with an ADR.
+
+**Model.** User-level purchase propensity classifier; touchpoint credit from
+marginal contribution (Shapley / ablation). Baselines: last click, first click,
+Markov chain with removal effect. Temporal train/test split.
+
+**Metrics.** Primary: log-loss (promotion between versions). Secondary: PR-AUC,
+calibration, channel-credit rank stability. Business: funnel drop-off, credit
+by channel, removal effect, top-decile lift, converting paths. GA4 comparison
+is a diagnostic, never a gate.
+
+**Scope.** MVP = MTA module. A/B test of Target CPA vs Target ROAS is the
+second module. Attribution is correlational; causal claims need experiments.
+
+Details and rationale: `docs/adr/0002-problem-framing-and-scope.md`.
 
 ## How we work (collaboration rules)
 
