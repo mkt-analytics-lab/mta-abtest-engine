@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     model_path: Path = Path("models/model.joblib")
     mlflow_tracking_uri: str = "sqlite:///mlflow.db"
     log_level: str = "INFO"
+    # Google Cloud project that runs (and pays for) BigQuery jobs. Optional so
+    # that tests and CI work without cloud access; required by warehouse code.
+    gcp_project_id: str | None = None
 
 
 class DataConfig(BaseModel):
@@ -56,12 +59,25 @@ class TrackingConfig(BaseModel):
     experiment_name: str
 
 
+class BigQueryConfig(BaseModel):
+    """Warehouse parameters. Credentials come from ADC, never from config."""
+
+    location: str = Field(
+        min_length=1, description="Dataset location; must match the source data"
+    )
+    source_table: str = Field(min_length=1, description="GA4 export (wildcard)")
+    maximum_bytes_billed: int = Field(
+        gt=0, description="Per-query cost guard: larger queries are rejected"
+    )
+
+
 class ProjectConfig(BaseModel):
     random_seed: int = 42
     data: DataConfig
     model: ModelConfig
     evaluation: EvaluationConfig
     tracking: TrackingConfig
+    bigquery: BigQueryConfig
 
 
 def load_config(path: str | Path | None = None) -> ProjectConfig:
