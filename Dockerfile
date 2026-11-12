@@ -7,7 +7,7 @@
 FROM ghcr.io/astral-sh/uv:0.13.7 AS uv
 
 # ---- builder ---------------------------------------------------------------
-FROM python:3.13-slim AS builder
+FROM python:3.15-slim AS builder
 COPY --from=uv /uv /bin/uv
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -23,7 +23,7 @@ COPY src/ src/
 RUN uv sync --locked --no-default-groups --group serving --no-editable
 
 # ---- runtime ---------------------------------------------------------------
-FROM python:3.13-slim AS runtime
+FROM python:3.15-slim AS runtime
 RUN useradd --create-home --uid 1000 app
 WORKDIR /app
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
