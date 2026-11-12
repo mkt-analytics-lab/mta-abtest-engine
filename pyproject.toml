@@ -126,6 +126,11 @@ cmd = "dbt parse --project-dir dbt --profiles-dir dbt"
 # Parsing never connects, so any project id works (CI has no .env).
 env = { APP_GCP_PROJECT_ID = "parse-only" }
 
+[tool.poe.tasks.dbt-show]
+help = "Run a model or analysis on BigQuery and print rows: poe dbt-show -s <name>"
+cmd = "dbt show --project-dir dbt --profiles-dir dbt --limit 100"
+envfile = ".env"
+
 [tool.poe.tasks.dbt-build]
 help = "Build dbt models and run data tests on BigQuery (needs .env + ADC)"
 cmd = "dbt build --project-dir dbt --profiles-dir dbt"
