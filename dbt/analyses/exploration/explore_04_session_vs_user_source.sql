@@ -1,12 +1,28 @@
--- Q4. Session channel (event_params on session_start) vs user acquisition channel
--- (traffic_source). Attribution needs the session channel, not the first one.
-with sessions as (
+-- Q4. Session channel vs user acquisition channel (traffic_source).
+-- Finding from the first version: `medium` is empty on session_start events, so
+-- the session channel is the first non-null `medium` among the session's events.
+-- A session is identified by (user_pseudo_id, ga_session_id).
+with events as (
     select
+        user_pseudo_id,
+        (select value.int_value from unnest(event_params) where key = 'ga_session_id')
+            as ga_session_id,
+        event_timestamp,
         (select value.string_value from unnest(event_params) where key = 'medium')
-            as session_medium,
+            as medium,
         traffic_source.medium as user_first_medium
     from {{ source('ga4', 'events') }}
-    where event_name = 'session_start'
+),
+
+sessions as (
+    select
+        user_pseudo_id,
+        ga_session_id,
+        array_agg(medium ignore nulls order by event_timestamp limit 1)[safe_offset(0)]
+            as session_medium,
+        any_value(user_first_medium) as user_first_medium
+    from events
+    group by user_pseudo_id, ga_session_id
 )
 
 select

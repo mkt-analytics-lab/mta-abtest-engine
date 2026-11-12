@@ -13,5 +13,6 @@ uv run poe dbt-show -s explore_01_volume
 | `explore_01_volume` | Events, users and days per month (date range, temporal split) |
 | `explore_02_event_names` | Event types and volume (funnel steps) |
 | `explore_03_event_params` | Keys in `event_params`, events and value types (session id, source/medium) |
-| `explore_04_session_vs_user_source` | Session medium vs `traffic_source` (first-user) medium |
+| `explore_04_session_vs_user_source` | Session medium (first non-null in the session) vs `traffic_source` (first-user) medium |
+| `explore_06_multi_touch_share` | Users by number of sessions and distinct channels, purchasers vs not |
 | `explore_05_purchasers` | Purchaser share, revenue, sessions per user (class imbalance) |
