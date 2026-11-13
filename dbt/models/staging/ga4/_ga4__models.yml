@@ -2,7 +2,9 @@ version: 2
 
 models:
   - name: stg_ga4__events
-    description: One row per GA4 event with typed date and timestamp.
+    description: >
+      One row per GA4 event with typed date/timestamp and the event_params used
+      downstream (session id and number, source / medium / campaign).
     columns:
       - name: event_date
         data_tests: [not_null]
@@ -10,3 +12,13 @@ models:
         data_tests: [not_null]
       - name: event_name
         data_tests: [not_null]
+      - name: user_pseudo_id
+        description: Pseudonymous cookie id (no personal data in the public sample).
+        data_tests: [not_null]
+      - name: ga_session_id
+        description: >
+          Session start time in Unix seconds: unique only together with
+          user_pseudo_id.
+        data_tests: [not_null]
+      - name: medium
+        description: Present on about 1/3 of events, usually the session entrance.

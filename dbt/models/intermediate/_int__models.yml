@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_ga4__sessions
+    description: >
+      One row per session (touchpoint): channel of the session, deepest funnel
+      stage reached, purchase flag and revenue. Grain: (user_pseudo_id, ga_session_id).
+    columns:
+      - name: session_key
+        data_tests: [unique, not_null]
+      - name: user_pseudo_id
+        data_tests: [not_null]
+      - name: session_medium
+        description: First non-null medium in the session, '(missing)' if none.
+        data_tests: [not_null]
+      - name: funnel_stage
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [browse, product, cart, checkout, purchase]
+      - name: purchase_revenue_usd
+        data_tests: [not_null]
