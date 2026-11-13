@@ -76,6 +76,9 @@ class PropensityConfig(BaseModel):
     experiment_name: str
     report_path: Path
     bootstrap_samples: int = Field(ge=50, le=5000)
+    reference_model: str = "funnel_rule"
+    logistic: dict[str, Any] = Field(default_factory=dict)
+    gbm: dict[str, Any] = Field(default_factory=dict)
 
 
 class TrackingConfig(BaseModel):

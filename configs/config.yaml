@@ -37,6 +37,17 @@ propensity:
   experiment_name: session-propensity
   report_path: reports/propensity_metrics.csv
   bootstrap_samples: 200     # user-level resamples for 95% intervals
+  reference_model: funnel_rule   # the gate compares ML candidates against it
+  logistic:
+    C: 1.0
+    max_iter: 2000
+  gbm:
+    learning_rate: 0.05
+    max_iter: 300
+    max_leaf_nodes: 15
+    min_samples_leaf: 100
+    l2_regularization: 1.0
+    early_stopping: true       # stops on a validation split taken from train
 
 tracking:
   experiment_name: mta-abtest-engine

@@ -46,3 +46,6 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | MLflow runs with params, metrics + CIs and trace tags | `pipelines/propensity.py` | `uv run poe mlflow-ui`, experiment `session-propensity` |
 | Means can mislead with sentinel values (-1 for "no previous session") | `hours_since_prev_session` | Compare medians or exclude -1 |
 | Ties in ranking metrics: a metric must not depend on row order | `top_decile_lift` | `test_constant_prediction_has_lift_one_regardless_of_row_order` |
+| No class re-weighting when probabilities matter (calibration) | `training/propensity_models.py` | Compare Brier / log-loss with `class_weight="balanced"` |
+| Gate as code: decisions from paired difference intervals | `evaluation/gate.py` | `tests/unit/test_gate.py` (noise vs real improvement) |
+| Never tune on the test set | ADR 0012 update | Tuning needs a validation period inside train |

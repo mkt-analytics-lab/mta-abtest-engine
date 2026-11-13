@@ -36,3 +36,13 @@ user-level resampling gives honest uncertainty with a small, correlated test set
 - With 350 positives, small real improvements may not pass: accepted, it avoids
   promoting noise.
 - The synthetic template pipeline is retired once the ML models are in place.
+
+## Update 2026-11-13: ML candidates
+- `logistic`: StandardScaler + LogisticRegression (C=1). `gbm`:
+  HistGradientBoosting (learning_rate 0.05, up to 300 iterations with early
+  stopping, 15 leaves, min 100 samples per leaf, L2 1.0). Parameters in
+  `configs/config.yaml` (`propensity`), no class re-weighting (keeps probabilities
+  calibrated). Hyperparameters are sensible defaults, not tuned: tuning must use a
+  validation period inside train, never the test set.
+- Gate implemented in `evaluation/gate.py`; results logged as MLflow tags
+  (`gate_passed`, `gate_reference`) and metrics (difference intervals).
