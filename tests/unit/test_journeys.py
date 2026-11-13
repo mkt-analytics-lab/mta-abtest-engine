@@ -14,6 +14,7 @@ from mta_abtest_engine.features.journeys import (
     apply_horizon,
     assign_split,
     build_journey_dataset,
+    build_scoring_points,
 )
 
 TEST_START = dt.date(2021, 1, 1)
@@ -80,3 +81,40 @@ def test_split_follows_journey_start(tp):
 def test_split_boundaries(start, expected):
     starts = pd.Series([pd.Timestamp(start, tz="UTC")])
     assert assign_split(starts, 14, TEST_START, DATA_END).iloc[0] == expected
+
+
+def _points_by_key(points: pd.DataFrame, column: str) -> dict[str, object]:
+    return dict(zip(points["session_key"], points[column], strict=True))
+
+
+def test_scoring_points_are_sessions_without_purchase(tp):
+    points = build_scoring_points(tp, 14, TEST_START, DATA_END)
+    # 9 touchpoints - 2 conversion sessions (u2-2003, u4-4002)
+    assert len(points) == 7
+    assert not set(points["session_key"]) & {"u2-2003", "u4-4002"}
+
+
+def test_scoring_label_is_purchase_within_horizon(tp):
+    labels = _points_by_key(build_scoring_points(tp, 14, TEST_START, DATA_END), "label")
+    assert labels == {
+        "u1-1001": 0,
+        "u2-2001": 1,
+        "u2-2002": 1,
+        "u3-3001": 0,
+        "u4-4001": 1,
+        "u5-5001": 0,
+        "u5-5002": 0,
+    }
+
+
+def test_scoring_label_respects_short_horizon(tp):
+    # u2 buys 4.5 days after touch 1 and ~2.1 days after touch 2.
+    labels = _points_by_key(build_scoring_points(tp, 3, TEST_START, DATA_END), "label")
+    assert labels["u2-2001"] == 0
+    assert labels["u2-2002"] == 1
+
+
+def test_scoring_points_split_by_scoring_time(tp):
+    split = _points_by_key(build_scoring_points(tp, 14, TEST_START, DATA_END), "split")
+    assert split["u5-5001"] == "test" and split["u5-5002"] == "test"
+    assert split["u1-1001"] == "train"

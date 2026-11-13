@@ -38,3 +38,15 @@ matter most for multi-touch attribution.
   document it in the GA4 comparison.
 - Test period is post-holiday (January) while train includes December: the
   evaluation also measures robustness to seasonality.
+
+## Update 2026-11-13: seasonality finding
+Applying the split to the real data: train 142,561 journeys (1.91% convert), test
+50,929 (0.63%). Weekly conversion rate by journey start falls gradually from
+~2% (Nov - early Dec) to 0.4-0.7% (Christmas - mid Jan) and recovers to ~1.6% in
+late January: post-holiday seasonality, not a tracking issue.
+
+Options: (A) keep the temporal split, gate relative to baselines on the same test,
+report ranking and calibration separately with bootstrap CIs; (B) seasonality
+features (cannot learn January from one season); (C) random split (hides the
+shift, leaks time). **Decision: A.** Phase 7 adds a base-rate drift monitor.
+The same horizon and split rules apply to the scoring points of ADR 0010.

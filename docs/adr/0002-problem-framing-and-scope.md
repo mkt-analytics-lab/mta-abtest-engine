@@ -1,6 +1,6 @@
 # 0002. Problem framing and MVP scope
 
-- **Status:** Accepted
+- **Status:** Accepted (model approach and unit superseded by 0010)
 - **Date:** 2026-11-11
 
 ## Context

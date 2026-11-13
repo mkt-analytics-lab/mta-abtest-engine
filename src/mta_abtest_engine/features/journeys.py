@@ -80,3 +80,34 @@ def build_journey_dataset(
         journeys[["user_pseudo_id", "split"]], on="user_pseudo_id", how="left"
     )
     return windowed, journeys
+
+
+def build_scoring_points(
+    touchpoints: pd.DataFrame,
+    horizon_days: int,
+    test_start: dt.date,
+    data_end: dt.date,
+) -> pd.DataFrame:
+    """One row per session that ends without a purchase (ADR 0010).
+
+    ``label`` is 1 if the same user purchases in a later session that starts within
+    ``horizon_days`` of this one. Journeys are already cut at the first purchase,
+    so every non-conversion touch happens before any purchase.
+    """
+    conversions = touchpoints.loc[
+        touchpoints["is_conversion_touch"], ["user_pseudo_id", "session_start_ts"]
+    ].rename(columns={"session_start_ts": "conversion_ts"})
+    points = touchpoints.loc[
+        ~touchpoints["is_conversion_touch"],
+        ["session_key", "user_pseudo_id", "touch_position", "session_start_ts"],
+    ].rename(columns={"session_start_ts": "scoring_ts"})
+    points = points.merge(conversions, on="user_pseudo_id", how="left")
+    horizon = pd.Timedelta(days=horizon_days)
+    points["label"] = (
+        (points["conversion_ts"] > points["scoring_ts"])
+        & (points["conversion_ts"] <= points["scoring_ts"] + horizon)
+    ).astype(int)
+    points["split"] = assign_split(
+        points["scoring_ts"], horizon_days, test_start, data_end
+    )
+    return points.drop(columns="conversion_ts").reset_index(drop=True)

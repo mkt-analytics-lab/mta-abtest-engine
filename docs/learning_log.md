@@ -35,3 +35,6 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Fixed label horizon + dropping touches after it (no future info) | `features/journeys.py` | `test_short_horizon_drops_late_touches_and_conversions` |
 | Temporal split by journey start (not random) | `assign_split` | Split counts per period on the real Parquet |
 | Cross-field config validation (fail fast on impossible settings) | `JourneyConfig` in `config.py` | `test_test_period_shorter_than_horizon_fails` |
+| Superseding a decision with a new ADR (never delete ADRs) | ADR 0002 status, ADR 0010 | Read both: context changed, decision changed |
+| MTA vs MMM vs journey analytics: different questions | ADR 0010 | The portfolio split (project 1 vs 2) |
+| Scoring point: predict from the past only (session without purchase) | `build_scoring_points` | `test_scoring_label_is_purchase_within_horizon` |
