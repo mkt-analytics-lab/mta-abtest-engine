@@ -38,3 +38,5 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Superseding a decision with a new ADR (never delete ADRs) | ADR 0002 status, ADR 0010 | Read both: context changed, decision changed |
 | MTA vs MMM vs journey analytics: different questions | ADR 0010 | The portfolio split (project 1 vs 2) |
 | Scoring point: predict from the past only (session without purchase) | `build_scoring_points` | `test_scoring_label_is_purchase_within_horizon` |
+| Running (cumulative) features: no future information by construction | `features/scoring.py` | `test_no_leakage_from_later_sessions` |
+| Fixed feature order shared by training and scoring | `FEATURE_COLUMNS` | `test_columns_and_order_are_fixed` |
