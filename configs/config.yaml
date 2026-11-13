@@ -11,6 +11,9 @@ data:
   test_path: data/processed/test.csv
   test_size: 0.2
   n_samples: 5000          # only used by the synthetic example ingest
+  # Journey marts extracted from BigQuery (ADR 0008)
+  touchpoints_path: data/raw/fct_touchpoints.parquet
+  journeys_path: data/raw/fct_user_journeys.parquet
 
 model:
   name: logistic_regression   # options: logistic_regression, random_forest
@@ -29,6 +32,7 @@ bigquery:
   # Same location as the GA4 public dataset: BigQuery cannot join across regions.
   location: US
   source_table: bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*
+  marts_dataset: mta_marts   # built by dbt: <profile dataset>_marts
   # Cost guard (ADR 0003/0005): 5 GiB. The whole sample is 3.34 GiB, so a
   # legitimate query never needs more.
   maximum_bytes_billed: 5368709120

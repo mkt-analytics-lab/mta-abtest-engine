@@ -1,0 +1,10 @@
+session_key,user_pseudo_id,touch_position,n_touchpoints,session_start_ts,channel_group,session_medium,session_source,session_campaign,funnel_step,funnel_stage,funnel_stage_pre_purchase,is_conversion_touch,purchase_revenue_usd
+u1-1001,u1,1,1,2020-11-02 10:00:00+00:00,Organic Search,organic,google,(organic),0,browse,browse,False,0.0
+u2-2001,u2,1,3,2020-11-03 09:00:00+00:00,Paid Search,cpc,google,winter_promo,0,browse,browse,False,0.0
+u2-2002,u2,2,3,2020-11-05 18:30:00+00:00,Referral,referral,blog.example,(referral),1,product,product,False,0.0
+u2-2003,u2,3,3,2020-11-07 20:15:00+00:00,Organic Search,organic,google,(organic),4,purchase,checkout,True,120.5
+u3-3001,u3,1,1,2020-12-01 12:00:00+00:00,Unknown,(missing),,,2,cart,cart,False,0.0
+u4-4001,u4,1,2,2020-12-10 08:00:00+00:00,Obfuscated,<Other>,<Other>,<Other>,1,product,product,False,0.0
+u4-4002,u4,2,2,2020-12-11 08:45:00+00:00,Direct,(none),(direct),(direct),4,purchase,checkout,True,64.0
+u5-5001,u5,1,2,2021-01-04 16:00:00+00:00,Email,email,newsletter,jan_sale,0,browse,browse,False,0.0
+u5-5002,u5,2,2,2021-01-09 16:20:00+00:00,Email,email,newsletter,jan_sale,0,browse,browse,False,0.0

@@ -44,6 +44,12 @@ training = [
 dbt = [
     "dbt-bigquery>=1.9",
 ]
+# Extraction of the dbt marts from BigQuery to local Parquet (not in serving).
+warehouse = [
+    "db-dtypes>=1.3",
+    "google-cloud-bigquery>=3.25",
+    "pyarrow>=17.0",
+]
 notebooks = [
     "ipykernel>=6.29",
     "matplotlib>=3.9",
@@ -58,6 +64,7 @@ default-groups = [
     "serving",
     "training",
     "dbt",
+    "warehouse",
     "notebooks",
 ]
 
@@ -119,6 +126,11 @@ cmd = "pytest"
 [tool.poe.tasks.check]
 help = "Everything CI runs: lint + tests + dbt parse"
 sequence = ["lint", "test", "dbt-parse"]
+
+[tool.poe.tasks.extract]
+help = "Download the dbt marts from BigQuery, validate them, save Parquet (needs .env + ADC)"
+cmd = "python -m mta_abtest_engine.data.extract"
+envfile = ".env"
 
 [tool.poe.tasks.dbt-parse]
 help = "Validate dbt project and SQL references (no BigQuery connection)"

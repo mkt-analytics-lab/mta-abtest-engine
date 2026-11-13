@@ -8,6 +8,8 @@ tests/integration/  several components together (API, full pipeline)
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import pytest
 from sklearn.pipeline import Pipeline
@@ -27,3 +29,23 @@ def trained_model(raw_df: pd.DataFrame) -> Pipeline:
     X = build_features(raw_df)
     y = raw_df[TARGET_COLUMN]
     return train_model(X, y, "logistic_regression", {"max_iter": 1000}, seed=0)
+
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture
+def touchpoints_df() -> pd.DataFrame:
+    """Hand-written fct_touchpoints (see tests/fixtures/README.md)."""
+    return pd.read_csv(
+        FIXTURES / "fct_touchpoints.csv", parse_dates=["session_start_ts"]
+    )
+
+
+@pytest.fixture
+def journeys_df() -> pd.DataFrame:
+    """Hand-written fct_user_journeys (see tests/fixtures/README.md)."""
+    return pd.read_csv(
+        FIXTURES / "fct_user_journeys.csv",
+        parse_dates=["journey_start_ts", "journey_end_ts"],
+    )

@@ -1,0 +1,6 @@
+user_pseudo_id,journey_start_ts,journey_end_ts,n_touchpoints,n_channels,converted,revenue_usd,first_channel,last_channel,channel_path,state_path
+u1,2020-11-02 10:00:00+00:00,2020-11-02 10:00:00+00:00,1,1,False,0.0,Organic Search,Organic Search,Organic Search,Organic Search:browse
+u2,2020-11-03 09:00:00+00:00,2020-11-07 20:15:00+00:00,3,3,True,120.5,Paid Search,Organic Search,Paid Search > Referral > Organic Search,Paid Search:browse > Referral:product > Organic Search:checkout
+u3,2020-12-01 12:00:00+00:00,2020-12-01 12:00:00+00:00,1,1,False,0.0,Unknown,Unknown,Unknown,Unknown:cart
+u4,2020-12-10 08:00:00+00:00,2020-12-11 08:45:00+00:00,2,2,True,64.0,Obfuscated,Direct,Obfuscated > Direct,Obfuscated:product > Direct:checkout
+u5,2021-01-04 16:00:00+00:00,2021-01-09 16:20:00+00:00,2,1,False,0.0,Email,Email,Email > Email,Email:browse > Email:browse

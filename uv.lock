@@ -2491,6 +2491,11 @@ serving = [
 training = [
     { name = "mlflow" },
 ]
+warehouse = [
+    { name = "db-dtypes" },
+    { name = "google-cloud-bigquery" },
+    { name = "pyarrow" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -2526,6 +2531,11 @@ serving = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]
 training = [{ name = "mlflow", specifier = ">=3.0" }]
+warehouse = [
+    { name = "db-dtypes", specifier = ">=1.3" },
+    { name = "google-cloud-bigquery", specifier = ">=3.25" },
+    { name = "pyarrow", specifier = ">=17.0" },
+]
 
 [[package]]
 name = "multidict"

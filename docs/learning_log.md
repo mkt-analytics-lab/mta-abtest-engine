@@ -26,3 +26,8 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Data leakage: cut journeys at the first purchase | `fct_touchpoints.sql` | `dbt/tests/assert_journeys_end_at_first_purchase.sql` |
 | Singular tests (custom SQL returning bad rows) vs generic tests | `dbt/tests/` | Break the cut on purpose: the test fails |
 | Grain of a table (one row per what?) | `fct_touchpoints` vs `fct_user_journeys` | `unique` tests on their keys |
+| `dbt show`: the row limit goes in `--limit`, never inside the SQL | `pyproject.toml` (dbt-show task) | A `limit` in the inline SQL fails with "Expected end of input" |
+| Extract -> validate -> write (an invalid mart never reaches disk) | `data/extract.py` | `tests/unit/test_extract.py::test_invalid_mart_is_not_written` |
+| Data contracts with pandera; defence in depth with dbt tests | `data/contracts.py` | `tests/data/test_mart_contracts.py` |
+| Dependency injection: pass a fake client to test without the cloud | `extract_marts(..., client=)` | `FakeClient` in `tests/unit/test_extract.py` |
+| Hand-written fixtures covering edge cases | `tests/fixtures/` | Each user in the README is one case |
