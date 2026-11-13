@@ -57,3 +57,23 @@ def test_test_period_shorter_than_horizon_fails(tmp_path):
     bad.write_text(yaml.safe_dump(raw))
     with pytest.raises(ValidationError):
         load_config(bad)
+
+
+@pytest.mark.parametrize(
+    ("section", "key", "value"),
+    [
+        ("tuning", "validation_start", "2020-12-25"),  # window crosses test_start
+        (
+            "tuning",
+            "search_space",
+            {"learning_rate": {"type": "float", "low": 1, "high": 0.1}},
+        ),
+    ],
+)
+def test_invalid_tuning_config_fails_fast(tmp_path, section, key, value):
+    raw = yaml.safe_load(CONFIG_PATH.read_text())
+    raw[section][key] = value
+    bad = tmp_path / "bad.yaml"
+    bad.write_text(yaml.safe_dump(raw))
+    with pytest.raises(ValidationError):
+        load_config(bad)

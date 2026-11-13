@@ -49,6 +49,25 @@ propensity:
     l2_regularization: 1.0
     early_stopping: true       # stops on a validation split taken from train
 
+tuning:
+  # Optuna search for the GBM (ADR 0013). January (test) is never used here:
+  # sub-train = scoring points whose label window ends before validation_start,
+  # validation = points from validation_start whose window ends before test_start.
+  study_name: gbm-tuning
+  storage: sqlite:///optuna.db   # resumable study (git-ignored)
+  validation_start: 2020-12-01
+  n_trials: 40
+  timeout_seconds: 1800
+  pruning_step: 50               # evaluate every 50 boosting iterations
+  fixed:
+    early_stopping: false        # validation is temporal, not a random split
+  search_space:
+    learning_rate: {type: float, low: 0.01, high: 0.2, log: true}
+    max_iter: {type: int, low: 100, high: 600}
+    max_leaf_nodes: {type: int, low: 7, high: 63}
+    min_samples_leaf: {type: int, low: 20, high: 500, log: true}
+    l2_regularization: {type: float, low: 0.001, high: 10.0, log: true}
+
 tracking:
   experiment_name: mta-abtest-engine
 

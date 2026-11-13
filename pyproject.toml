@@ -40,6 +40,7 @@ serving = [
 ]
 training = [
     "mlflow>=3.0",
+    "optuna>=4.0",
 ]
 dbt = [
     "dbt-bigquery>=1.9",
@@ -156,6 +157,10 @@ cmd = "python -m mta_abtest_engine.pipelines.run --stage all"
 [tool.poe.tasks.propensity]
 help = "Session propensity: fit baselines/models, evaluate on test, log to MLflow"
 cmd = "python -m mta_abtest_engine.pipelines.propensity"
+
+[tool.poe.tasks.tune]
+help = "Optuna tuning of the GBM on a temporal validation inside train (ADR 0013)"
+cmd = "python -m mta_abtest_engine.training.tuning"
 
 [tool.poe.tasks.serve]
 help = "Run the prediction API locally with auto-reload"

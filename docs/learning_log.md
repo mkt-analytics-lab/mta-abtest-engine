@@ -49,3 +49,7 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | No class re-weighting when probabilities matter (calibration) | `training/propensity_models.py` | Compare Brier / log-loss with `class_weight="balanced"` |
 | Gate as code: decisions from paired difference intervals | `evaluation/gate.py` | `tests/unit/test_gate.py` (noise vs real improvement) |
 | Never tune on the test set | ADR 0012 update | Tuning needs a validation period inside train |
+| Hyperparameter tuning (not "fine-tuning"): temporal validation inside train | `training/tuning.py` | `test_validation_masks_never_touch_test_or_overlap` |
+| Bayesian search (TPE), pruning with warm start, resumable studies | ADR 0013 | `test_study_finds_params_and_is_resumable`; `optuna.db` |
+| Nested MLflow runs: one parent per study, one child per trial | `tuning.run` | MLflow UI, run `gbm-tuning` |
+| Test touched once: tuned challenger gated against current model | `challenge_current_gbm` | Gate line `gbm_tuned vs gbm` |

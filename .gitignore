@@ -33,6 +33,7 @@ reports/*
 mlruns/
 mlartifacts/
 mlflow.db
+optuna.db
 
 # ---- dbt -------------------------------------------------------------------
 dbt/target/

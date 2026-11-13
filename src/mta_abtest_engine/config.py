@@ -14,7 +14,7 @@ from __future__ import annotations
 import datetime as dt
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, Field, model_validator
@@ -81,6 +81,32 @@ class PropensityConfig(BaseModel):
     gbm: dict[str, Any] = Field(default_factory=dict)
 
 
+class ParamSpec(BaseModel):
+    type: Literal["int", "float"]
+    low: float
+    high: float
+    log: bool = False
+
+    @model_validator(mode="after")
+    def _ordered(self) -> ParamSpec:
+        if not self.low < self.high:
+            raise ValueError("search space requires low < high")
+        return self
+
+
+class TuningConfig(BaseModel):
+    """Optuna search for the GBM (ADR 0013)."""
+
+    study_name: str
+    storage: str
+    validation_start: dt.date
+    n_trials: int = Field(gt=0)
+    timeout_seconds: int = Field(gt=0)
+    pruning_step: int = Field(gt=0)
+    fixed: dict[str, Any] = Field(default_factory=dict)
+    search_space: dict[str, ParamSpec]
+
+
 class TrackingConfig(BaseModel):
     experiment_name: str
 
@@ -105,7 +131,16 @@ class ProjectConfig(BaseModel):
     model: ModelConfig
     evaluation: EvaluationConfig
     propensity: PropensityConfig
+    tuning: TuningConfig
     tracking: TrackingConfig
+
+    @model_validator(mode="after")
+    def _validation_fits_before_test(self) -> ProjectConfig:
+        window = dt.timedelta(days=self.journey.horizon_days)
+        if self.tuning.validation_start + window >= self.journey.test_start:
+            raise ValueError("tuning validation period shorter than the horizon")
+        return self
+
     bigquery: BigQueryConfig
 
 
