@@ -48,3 +48,12 @@ def test_gcp_project_id_comes_from_environment(monkeypatch):
 def test_gcp_project_id_is_optional(monkeypatch):
     monkeypatch.delenv("APP_GCP_PROJECT_ID", raising=False)
     assert Settings(_env_file=None).gcp_project_id is None
+
+
+def test_test_period_shorter_than_horizon_fails(tmp_path):
+    raw = yaml.safe_load(CONFIG_PATH.read_text())
+    raw["journey"]["horizon_days"] = 40  # Jan 1 + 40 days > Feb 1
+    bad = tmp_path / "bad.yaml"
+    bad.write_text(yaml.safe_dump(raw))
+    with pytest.raises(ValidationError):
+        load_config(bad)

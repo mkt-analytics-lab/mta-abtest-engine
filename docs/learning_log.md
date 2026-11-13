@@ -31,3 +31,7 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Data contracts with pandera; defence in depth with dbt tests | `data/contracts.py` | `tests/data/test_mart_contracts.py` |
 | Dependency injection: pass a fake client to test without the cloud | `extract_marts(..., client=)` | `FakeClient` in `tests/unit/test_extract.py` |
 | Hand-written fixtures covering edge cases | `tests/fixtures/` | Each user in the README is one case |
+| Right censoring: recent users have not had time to convert | ADR 0009 | `test_split_boundaries` in `tests/unit/test_journeys.py` |
+| Fixed label horizon + dropping touches after it (no future info) | `features/journeys.py` | `test_short_horizon_drops_late_touches_and_conversions` |
+| Temporal split by journey start (not random) | `assign_split` | Split counts per period on the real Parquet |
+| Cross-field config validation (fail fast on impossible settings) | `JourneyConfig` in `config.py` | `test_test_period_shorter_than_horizon_fails` |

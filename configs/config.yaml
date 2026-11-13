@@ -15,6 +15,13 @@ data:
   touchpoints_path: data/raw/fct_touchpoints.parquet
   journeys_path: data/raw/fct_user_journeys.parquet
 
+journey:
+  # Label = purchase within horizon_days of the first touchpoint (ADR 0009).
+  # Touchpoints after the horizon are dropped (future relative to the label).
+  horizon_days: 14
+  test_start: 2021-01-01     # journeys starting from here are the test set
+  data_end: 2021-02-01       # exclusive end of the available data
+
 model:
   name: logistic_regression   # options: logistic_regression, random_forest
   params:
