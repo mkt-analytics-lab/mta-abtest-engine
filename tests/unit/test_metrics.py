@@ -29,6 +29,18 @@ def test_top_decile_lift_of_perfect_ranking():
     assert top_decile_lift(y, p) == pytest.approx(10.0)
 
 
+def test_constant_prediction_has_lift_one_regardless_of_row_order():
+    y = np.array([1] * 5 + [0] * 95)  # positives first: row order must not matter
+    assert top_decile_lift(y, np.full(100, 0.3)) == pytest.approx(1.0)
+
+
+def test_ties_at_the_cut_off_are_shared():
+    # 20 rows share the top score (10 positives); the top 10% takes half of them.
+    y = np.array([1] * 10 + [0] * 10 + [0] * 80)
+    p = np.array([0.9] * 20 + [0.1] * 80)
+    assert top_decile_lift(y, p) == pytest.approx((5 / 10) / 0.1)
+
+
 def test_informative_model_beats_flat_prediction(data):
     y, preds, _ = data
     good, flat = compute_metrics(y, preds["good"]), compute_metrics(y, preds["flat"])

@@ -16,10 +16,27 @@ EPS = 1e-6
 
 
 def top_decile_lift(y: np.ndarray, p: np.ndarray) -> float:
-    """Purchase rate in the 10% highest scores divided by the overall rate."""
-    n_top = max(1, int(np.ceil(0.1 * len(p))))
-    top = np.argsort(-p, kind="stable")[:n_top]
-    return float(y[top].mean() / y.mean())
+    """Purchase rate in the 10% highest scores divided by the overall rate.
+
+    Tied scores at the cut-off are shared proportionally, so the result does not
+    depend on row order (a constant prediction has lift 1; a rule with few
+    distinct values is not favoured or penalised by how rows are sorted).
+    """
+    n_top = 0.1 * len(p)
+    groups = (
+        pd.DataFrame({"p": p, "y": y})
+        .groupby("p", sort=True)["y"]
+        .agg(["sum", "count"])
+        .iloc[::-1]  # highest scores first
+    )
+    taken = positives = 0.0
+    for total, count in zip(groups["sum"], groups["count"], strict=True):
+        share = min(count, n_top - taken) / count
+        positives += share * total
+        taken += share * count
+        if taken >= n_top:
+            break
+    return float((positives / n_top) / y.mean())
 
 
 def compute_metrics(y: np.ndarray, p: np.ndarray) -> dict[str, float]:
