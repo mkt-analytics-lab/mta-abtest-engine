@@ -32,6 +32,12 @@ evaluation:
   min_roc_auc: 0.75           # quality gate: below this, the pipeline fails
   metrics_path: reports/metrics.json
 
+propensity:
+  # Session propensity model (ADR 0010-0012)
+  experiment_name: session-propensity
+  report_path: reports/propensity_metrics.csv
+  bootstrap_samples: 200     # user-level resamples for 95% intervals
+
 tracking:
   experiment_name: mta-abtest-engine
 

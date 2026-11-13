@@ -40,3 +40,8 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Scoring point: predict from the past only (session without purchase) | `build_scoring_points` | `test_scoring_label_is_purchase_within_horizon` |
 | Running (cumulative) features: no future information by construction | `features/scoring.py` | `test_no_leakage_from_later_sessions` |
 | Fixed feature order shared by training and scoring | `FEATURE_COLUMNS` | `test_columns_and_order_are_fixed` |
+| Baselines first: base rate and a calibrated heuristic rule | `training/baselines.py` | `poe propensity` report: rule vs base rate |
+| User-level bootstrap (correlated rows) and paired differences | `evaluation/metrics.py` | `test_paired_difference_detects_a_real_improvement` |
+| Relative quality gate under distribution shift | ADR 0012 | Compare models on the same January test |
+| MLflow runs with params, metrics + CIs and trace tags | `pipelines/propensity.py` | `uv run poe mlflow-ui`, experiment `session-propensity` |
+| Means can mislead with sentinel values (-1 for "no previous session") | `hours_since_prev_session` | Compare medians or exclude -1 |

@@ -153,6 +153,10 @@ envfile = ".env"
 help = "Run the full pipeline: ingest -> validate -> features -> train -> evaluate"
 cmd = "python -m mta_abtest_engine.pipelines.run --stage all"
 
+[tool.poe.tasks.propensity]
+help = "Session propensity: fit baselines/models, evaluate on test, log to MLflow"
+cmd = "python -m mta_abtest_engine.pipelines.propensity"
+
 [tool.poe.tasks.serve]
 help = "Run the prediction API locally with auto-reload"
 cmd = "uvicorn mta_abtest_engine.serving.app:app --reload --port 8000"

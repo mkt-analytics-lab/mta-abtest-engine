@@ -72,6 +72,12 @@ class EvaluationConfig(BaseModel):
     metrics_path: Path
 
 
+class PropensityConfig(BaseModel):
+    experiment_name: str
+    report_path: Path
+    bootstrap_samples: int = Field(ge=50, le=5000)
+
+
 class TrackingConfig(BaseModel):
     experiment_name: str
 
@@ -95,6 +101,7 @@ class ProjectConfig(BaseModel):
     journey: JourneyConfig
     model: ModelConfig
     evaluation: EvaluationConfig
+    propensity: PropensityConfig
     tracking: TrackingConfig
     bigquery: BigQueryConfig
 
