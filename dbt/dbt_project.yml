@@ -5,6 +5,7 @@ version: "1.0.0"
 profile: mta_abtest_engine
 
 model-paths: ["models"]
+seed-paths: ["seeds"]
 test-paths: ["tests"]
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]
@@ -18,6 +19,13 @@ models:
     intermediate:
       +schema: intermediate
       +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  mta_abtest_engine:
+    +schema: reference
 
 flags:
   send_anonymous_usage_stats: false

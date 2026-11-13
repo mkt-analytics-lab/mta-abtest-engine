@@ -1,0 +1,15 @@
+version: 2
+
+seeds:
+  - name: channel_groups
+    description: >
+      Maps the session medium to a GA4-style channel group (ADR 0007). Editable by
+      marketing without touching SQL. A new, unmapped medium makes the not_null
+      test on fct_touchpoints.channel_group fail, so it cannot slip through.
+    config:
+      column_types:
+        medium: string
+        channel_group: string
+    columns:
+      - name: medium
+        data_tests: [unique, not_null]

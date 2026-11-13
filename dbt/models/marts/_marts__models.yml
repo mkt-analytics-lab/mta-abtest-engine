@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: fct_touchpoints
+    description: >
+      Touchpoints (sessions) per user journey, cut at the first purchase, with
+      GA4-style channel group. Long format: input for features and attribution.
+    columns:
+      - name: session_key
+        data_tests: [unique, not_null]
+      - name: touch_position
+        data_tests: [not_null]
+      - name: channel_group
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [Organic Search, Referral, Direct, Paid Search,
+                         Affiliates, Email, Obfuscated, Unknown]
+      - name: funnel_stage_pre_purchase
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [browse, product, cart, checkout]
+
+  - name: fct_user_journeys
+    description: >
+      One row per user: journey summary, label (converted) and channel / state
+      paths. Training table grain.
+    columns:
+      - name: user_pseudo_id
+        data_tests: [unique, not_null]
+      - name: converted
+        data_tests: [not_null]
+      - name: channel_path
+        data_tests: [not_null]

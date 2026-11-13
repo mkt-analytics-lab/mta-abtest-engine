@@ -21,3 +21,8 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | DAG: tests skip when their model fails | `dbt build` output | `SKIP=n` after a model error |
 | Explore before designing (analyses + `dbt show`) | `dbt/analyses/exploration/` | Q4: medium was not on session_start |
 | Session = touchpoint; grain and keys | ADR 0006, `int_ga4__sessions.sql` | `unique` test on `session_key` |
+| Seeds: small reference tables versioned as CSV | `dbt/seeds/channel_groups.csv` | `mta_reference.channel_groups` in BigQuery |
+| Business rules in marts, raw facts in intermediate | ADR 0007 | Change the seed, rebuild: only marts change |
+| Data leakage: cut journeys at the first purchase | `fct_touchpoints.sql` | `dbt/tests/assert_journeys_end_at_first_purchase.sql` |
+| Singular tests (custom SQL returning bad rows) vs generic tests | `dbt/tests/` | Break the cut on purpose: the test fails |
+| Grain of a table (one row per what?) | `fct_touchpoints` vs `fct_user_journeys` | `unique` tests on their keys |
