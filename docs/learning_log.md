@@ -89,3 +89,5 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Data-quality alert vs model alert: different actions | `alert_channel_mix`, `action` | `test_channel_mix_change_means_check_tracking_not_retrain` |
 | Monitoring found a tracking change (Jan 21-22) | ADR 0021 update | Channel shares per day on the local Parquet |
 | Schema evolution: adding a column to an existing BigQuery table | `serving/publish.py` (`ALLOW_FIELD_ADDITION`) | Re-run `poe monitor`: old partitions show NULL in new columns |
+| Reporting layer: BI tools draw, SQL in dbt computes | `dbt/models/reporting/`, ADR 0022 | `mta_reporting` views in BigQuery |
+| Python outputs as dbt sources (lineage across tools) | `_results__sources.yml` | `dbt docs generate` lineage graph |

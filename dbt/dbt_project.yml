@@ -22,6 +22,10 @@ models:
     marts:
       +schema: marts
       +materialized: table
+    # Thin views for Looker Studio (ADR 0022): one view per dashboard chart.
+    reporting:
+      +schema: reporting
+      +materialized: view
 
 seeds:
   mta_abtest_engine:

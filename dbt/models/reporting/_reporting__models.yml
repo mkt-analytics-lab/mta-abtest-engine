@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: rpt_funnel_daily
+    description: Sessions reaching each funnel stage per day and entry channel.
+    columns:
+      - name: session_date
+        data_tests: [not_null]
+      - name: channel_group
+        data_tests: [not_null]
+  - name: rpt_channel_credit
+    description: Channel credit and share per model, difference vs GA4 proxy.
+    columns:
+      - name: model
+        data_tests: [not_null]
+  - name: rpt_journey_states
+    description: Markov states with channel, stage and role (closing / assist).
+    columns:
+      - name: role
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [closing, assist]
+  - name: rpt_scores_daily
+    description: Scored sessions per day, decile, channel and stage.
+    columns:
+      - name: score_decile
+        data_tests: [not_null]
+  - name: rpt_monitoring
+    description: Daily monitoring with the recommended action.
+    columns:
+      - name: action
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [none, retrain, check_tracking]

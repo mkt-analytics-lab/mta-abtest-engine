@@ -38,3 +38,15 @@ def test_marts_dataset_matches_dbt_naming():
     # dbt writes marts to <profile dataset>_<layer schema>, e.g. mta_marts.
     cfg = load_config(Path("configs/config.yaml"))
     assert cfg.bigquery.marts_dataset == f"{_profile_output()['dataset']}_marts"
+
+
+def test_results_source_matches_python_results_dataset():
+    # dbt reads the tables Python writes: both must point to the same dataset.
+    cfg = load_config(Path("configs/config.yaml"))
+    sources = yaml.safe_load(
+        (DBT_DIR / "models/reporting/_results__sources.yml").read_text()
+    )["sources"]
+    results = next(s for s in sources if s["name"] == "results")
+    assert results["schema"] == cfg.serving.results_dataset
+    tables = {t["name"] for t in results["tables"]}
+    assert {cfg.serving.scores_table, cfg.monitoring.table} <= tables

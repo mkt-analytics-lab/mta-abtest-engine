@@ -1,0 +1,13 @@
+version: 2
+
+# Tables written by Python (ADR 0017, 0021) in the same GCP project. dbt reads
+# them but does not own them: Python owns `mta_results`, dbt owns `mta_reporting`.
+sources:
+  - name: results
+    database: "{{ target.project }}"
+    schema: mta_results
+    tables:
+      - name: propensity_scores
+      - name: attribution_channels
+      - name: attribution_states
+      - name: monitoring_daily
