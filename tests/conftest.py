@@ -8,6 +8,8 @@ tests/integration/  several components together (API, full pipeline)
 
 from __future__ import annotations
 
+import gc
+import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -49,3 +51,14 @@ def journeys_df() -> pd.DataFrame:
         FIXTURES / "fct_user_journeys.csv",
         parse_dates=["journey_start_ts", "journey_end_ts"],
     )
+
+
+@pytest.fixture(autouse=True)
+def _collect_sqlite_connections():
+    """MLflow and Optuna leave temporary SQLite connections (in tmp_path) open.
+    Collect them after each test with their ResourceWarning silenced, so the
+    output stays clean and real warnings remain visible."""
+    yield
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ResourceWarning)
+        gc.collect()

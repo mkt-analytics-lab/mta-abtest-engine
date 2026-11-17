@@ -85,8 +85,22 @@ def test_backwards_model_is_caught(good_model, synthetic_training):
     _, y = synthetic_training
     results = run_behavioral_checks(ReversedModel(good_model), float(np.mean(y)))
     failed = {r.name for r in results if not r.passed}
-    assert {"checkout_above_browse", "deeper_stage_not_lower"} <= failed
+    assert {"early_funnel_not_lower", "checkout_above_product"} <= failed
     assert "calendar_shift_invariant" not in failed  # still date-free
+
+
+class CheckoutDipModel:
+    """Mimics the real pattern: checkout abandoners score below cart, above product."""
+
+    def predict_proba(self, X):
+        rates = {0: 0.003, 1: 0.023, 2: 0.062, 3: 0.044}
+        p = X["cur_funnel_step"].map(rates).to_numpy()
+        return np.column_stack([1 - p, p])
+
+
+def test_checkout_dip_supported_by_data_is_allowed():
+    names = {r.name: r.passed for r in run_behavioral_checks(CheckoutDipModel(), 0.017)}
+    assert names["early_funnel_not_lower"] and names["checkout_above_product"]
 
 
 def test_score_uses_the_last_session(good_model):

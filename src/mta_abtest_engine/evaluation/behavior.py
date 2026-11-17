@@ -6,7 +6,10 @@ them into features with the SAME function used in training, and asserts an
 expectation from domain knowledge:
 
 - MFT (minimum functionality): obvious cases must be scored as obvious.
-- DIR (directional): going deeper in the funnel must not lower the score.
+- DIR (directional): browse -> product -> cart must not lower the score, and a
+  checkout abandoner must score above a product viewer. Checkout is NOT required
+  to score above cart: train data shows first-session checkout abandoners buy
+  less often than cart abandoners (4.44% vs 6.23%, n > 3,000 each; ADR 0014).
 - INV (invariance): shifting a journey in calendar time must not change it
   (absolute dates are not features; this guards against leakage).
 """
@@ -87,17 +90,18 @@ def run_behavioral_checks(model: Any, base_rate: float) -> list[CheckResult]:
     by_stage = [
         score(model, make_journey([("Organic Search", stage, 0)])) for stage in STEPS
     ]
+    early = by_stage[:3]  # browse, product, cart
     add(
-        "deeper_stage_not_lower",
+        "early_funnel_not_lower",
         "DIR",
-        all(b >= a for a, b in zip(by_stage, by_stage[1:], strict=False)),
-        "browse/product/cart/checkout = " + ", ".join(f"{p:.4f}" for p in by_stage),
+        all(b >= a for a, b in zip(early, early[1:], strict=False)),
+        "browse/product/cart = " + ", ".join(f"{p:.4f}" for p in early),
     )
     add(
-        "checkout_above_browse",
+        "checkout_above_product",
         "DIR",
-        by_stage[3] > by_stage[0],
-        f"{by_stage[3]:.4f} > {by_stage[0]:.4f}",
+        by_stage[3] > by_stage[1],
+        f"checkout {by_stage[3]:.4f} > product {by_stage[1]:.4f}",
     )
 
     one_cart = make_journey([("Referral", "browse", 0), ("Referral", "cart", 24)])
