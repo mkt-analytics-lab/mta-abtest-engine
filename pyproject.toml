@@ -55,6 +55,9 @@ notebooks = [
     "nbstripout>=0.8",
     "seaborn>=0.13",
 ]
+orchestration = [
+    "prefect>=3.0",
+]
 
 [tool.uv]
 # `uv sync` installs every group locally; the Dockerfile installs only `serving`.
@@ -65,6 +68,7 @@ default-groups = [
     "dbt",
     "warehouse",
     "notebooks",
+    "orchestration",
 ]
 
 [build-system]
@@ -201,3 +205,13 @@ echo "Built mta-abtest-engine:model-v$VERSION"
 [tool.poe.tasks.docker-run]
 help = "Run the latest serving image (the model is inside the image)"
 cmd = "docker run --rm -p 8000:8000 mta-abtest-engine:latest"
+
+[tool.poe.tasks.flow]
+help = "Run a Prefect flow once: poe flow daily --date YYYY-MM-DD [--skip-dbt] | poe flow retrain"
+cmd = "python -m mta_abtest_engine.pipelines.flow"
+envfile = ".env"
+
+[tool.poe.tasks.flow-serve]
+help = "Serve the scheduled deployments (daily scoring, weekly retraining) while running"
+cmd = "python -m mta_abtest_engine.pipelines.flow serve"
+envfile = ".env"

@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: v0.3.0
+_commit: v0.3.1
 _src_path: gh:damfello/mlops-project-template
 author_name: Duvan Fruto
 description: User-level multi-touch attribution and journey optimization
@@ -12,4 +12,4 @@ use_compose: false
 use_dbt: false
 use_dvc: false
 use_monitoring: false
-use_prefect: false
+use_prefect: true

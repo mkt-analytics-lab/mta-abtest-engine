@@ -21,6 +21,35 @@ uv run poe check                 # lint + tests + dbt parse (same as CI)
 
 Run `uv run poe` to list every task.
 
+## Project structure
+
+```
+├── configs/              # versioned pipeline parameters (validated with Pydantic)
+├── data/                 # raw / interim / processed (git-ignored)
+├── dbt/                  # ELT on BigQuery: staging -> intermediate -> marts
+├── docs/
+│   ├── adr/              # Architecture Decision Records
+│   ├── learning_log.md   # concepts per increment and how to verify them
+│   └── mlops_blueprint.md
+├── models/               # exported serving model (git-ignored, baked into the image)
+├── notebooks/            # exploration only; reusable logic goes to src/
+├── reports/              # metrics and reports (git-ignored)
+├── src/mta_abtest_engine/
+│   ├── config.py         # settings (env) + project config (YAML)
+│   ├── data/             # mart extraction + data contracts
+│   ├── features/         # journeys, labels, split, scoring features (train = serve)
+│   ├── training/         # baselines, models, tuning, registry
+│   ├── evaluation/       # metrics, bootstrap, gate, behavioural checks
+│   ├── attribution/      # Markov journey model + heuristic baselines
+│   ├── serving/          # batch scoring, BigQuery publishing, FastAPI app
+│   └── pipelines/        # propensity, attribution and Prefect flows
+└── tests/
+    ├── unit/             # pure functions, config, parity
+    ├── data/             # data contracts of the journey marts
+    ├── model/            # behavioural tests (MFT / INV / DIR)
+    └── integration/      # pipelines, registry, API, flows
+```
+
 ## Pipeline
 
 | Step | Command | Output |
@@ -46,6 +75,9 @@ curl -X POST localhost:8000/score -H "Content-Type: application/json" \
   -d '{"sessions": [{"session_start_ts": "2021-01-10T18:30:00Z",
                      "channel_group": "Referral", "funnel_stage": "cart"}]}'
 ```
+
+## Optional components enabled
+- **Prefect** – orchestration with retries and run history: `uv run poe flow`.
 
 ## Dependency updates
 

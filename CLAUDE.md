@@ -65,6 +65,7 @@ uv run poe check         # lint + tests (same as CI)
 uv run poe format        # auto-format
 uv run poe propensity    # train, evaluate, gate, register challenger
 uv run poe attribution   # Markov journey attribution
+uv run poe flow daily --date YYYY-MM-DD   # Prefect: dbt -> extract -> score
 uv run poe serve         # API on :8000
 uv run poe               # list all tasks
 ```

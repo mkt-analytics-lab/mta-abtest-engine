@@ -78,3 +78,6 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | API and batch share one feature function | `serving/journey.py` | `test_api_features_equal_batch_features` |
 | CI smoke test with a stand-in model (no registry in CI) | `.github/workflows/ci.yml` | GitHub Actions, Docker job |
 | Walking skeleton: scaffolding to remove once real parts exist | ADR 0019 | `git log --stat` of the retire commit |
+| Updating a project from the template (`copier update`) and resolving conflicts | ADR 0020 | `git diff` of `.copier-answers.yml` (`_commit: v0.3.1`) |
+| Orchestration: flows, tasks, retries policy, schedules | `pipelines/flow.py` | `uv run prefect server start` + `poe flow daily --date ...` |
+| Retry transient failures, never deterministic ones | `WAREHOUSE_RETRIES` | `test_warehouse_steps_retry_but_training_does_not` |
