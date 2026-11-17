@@ -40,14 +40,30 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      # CI has no access to the MLflow registry: a tiny synthetic model stands in
+      # for the champion so the image can be built and smoke-tested (ADR 0018).
+      - name: Export test model
+        run: |
+          uv sync --locked
+          uv run poe export-test-model
+
       - name: Build serving image
         run: docker build -t app:ci .
 
-      - name: Smoke test /health
+      - name: Smoke test /health and /score
         run: |
           docker run -d --name app -p 8000:8000 app:ci
           for i in $(seq 1 20); do
-            curl -fsS localhost:8000/health && exit 0
+            if curl -fsS localhost:8000/health | grep -q '"model_loaded":true'; then
+              curl -fsS -X POST localhost:8000/score -H 'Content-Type: application/json' \
+                -d '{"sessions":[{"session_start_ts":"2021-01-10T10:00:00Z","channel_group":"Referral","funnel_stage":"cart"}]}' \
+                | grep -q '"propensity"' && exit 0
+            fi
             sleep 1
           done
           docker logs app

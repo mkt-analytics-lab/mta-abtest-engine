@@ -149,3 +149,21 @@ def test_batch_loads_the_champion_with_its_version(tracking, fitted):
     champion, version = load_champion(NAME)
     assert version == "1"
     np.testing.assert_allclose(champion.predict_proba(X), model.predict_proba(X))
+
+
+def test_export_champion_writes_model_and_metadata(tracking, fitted, tmp_path):
+    import json
+
+    import joblib
+
+    from mta_abtest_engine.serving.export import export_champion
+
+    model, X = fitted
+    _register(tracking, model, X)
+    registry.promote(NAME, "ok", user="ci")
+    out = export_champion(NAME, tmp_path / "models" / "model.joblib")
+    meta = json.loads(out.with_suffix(".meta.json").read_text())
+    assert meta["registered_model"] == NAME and meta["model_version"] == "1"
+    np.testing.assert_allclose(
+        joblib.load(out).predict_proba(X), model.predict_proba(X)
+    )

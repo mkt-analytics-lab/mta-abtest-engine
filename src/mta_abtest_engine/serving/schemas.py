@@ -2,27 +2,45 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, field_validator
+
+from ..data.contracts import CHANNEL_GROUPS
+from .journey import FUNNEL_STEPS
 
 
-class Record(BaseModel):
-    """One observation. Fields must match ``data.ingest.FEATURE_COLUMNS``
-    (a parity test in ``tests/unit/test_parity.py`` enforces it)."""
+class Session(BaseModel):
+    """One session of the user's journey (no purchase in it)."""
 
     model_config = ConfigDict(extra="forbid")
 
-    x1: float
-    x2: float
-    x3: float
-    x4: float
+    session_start_ts: AwareDatetime  # must carry a timezone, e.g. ...Z
+    channel_group: str
+    funnel_stage: str = Field(description="browse | product | cart | checkout")
+
+    @field_validator("channel_group")
+    @classmethod
+    def _known_channel(cls, value: str) -> str:
+        if value not in CHANNEL_GROUPS:
+            raise ValueError(f"unknown channel group; expected one of {CHANNEL_GROUPS}")
+        return value
+
+    @field_validator("funnel_stage")
+    @classmethod
+    def _known_stage(cls, value: str) -> str:
+        if value not in FUNNEL_STEPS:
+            raise ValueError(
+                f"unknown funnel stage; expected one of {list(FUNNEL_STEPS)}"
+            )
+        return value
 
 
-class PredictRequest(BaseModel):
-    records: list[Record] = Field(min_length=1, max_length=1000)
+class ScoreRequest(BaseModel):
+    sessions: list[Session] = Field(min_length=1, max_length=500)
 
 
-class PredictResponse(BaseModel):
-    probabilities: list[float]
+class ScoreResponse(BaseModel):
+    propensity: float = Field(description="P(purchase within 14 days), uncalibrated")
+    n_sessions: int
     model_version: str | None
 
 

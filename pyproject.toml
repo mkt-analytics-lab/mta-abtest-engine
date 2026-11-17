@@ -188,10 +188,23 @@ cmd = "uvicorn mta_abtest_engine.serving.app:app --reload --port 8000"
 help = "Open the MLflow UI (experiments, runs, models)"
 cmd = "mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000"
 
+[tool.poe.tasks.export-champion]
+help = "Export the registry champion to models/ (baked into the serving image)"
+cmd = "python -m mta_abtest_engine.serving.export champion"
+envfile = ".env"
+
+[tool.poe.tasks.export-test-model]
+help = "Export a tiny synthetic model to models/ (CI smoke test only)"
+cmd = "python -m mta_abtest_engine.serving.export test-model"
+
 [tool.poe.tasks.docker-build]
-help = "Build the serving image"
-cmd = "docker build -t mta-abtest-engine:dev ."
+help = "Build the serving image tagged with the exported model version"
+shell = """
+VERSION=$(python -c "import json; print(json.load(open('models/model.meta.json'))['model_version'])")
+docker build -t mta-abtest-engine:model-v$VERSION -t mta-abtest-engine:latest .
+echo "Built mta-abtest-engine:model-v$VERSION"
+"""
 
 [tool.poe.tasks.docker-run]
-help = "Run the serving image (mounts ./models)"
-cmd = "docker run --rm -p 8000:8000 -v ./models:/app/models mta-abtest-engine:dev"
+help = "Run the latest serving image (the model is inside the image)"
+cmd = "docker run --rm -p 8000:8000 mta-abtest-engine:latest"

@@ -28,6 +28,8 @@ RUN useradd --create-home --uid 1000 app
 WORKDIR /app
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
 COPY --chown=app:app configs/ configs/
+# The model is part of the image (ADR 0018): export it first with
+# `uv run poe export-champion`; the image tag carries the model version.
 COPY --chown=app:app models/ models/
 
 ENV PATH="/app/.venv/bin:$PATH" \

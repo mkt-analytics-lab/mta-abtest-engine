@@ -73,3 +73,7 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Idempotent writes: partition decorator + WRITE_TRUNCATE | `serving/publish.py` | Re-run `poe score` for a day: row count unchanged |
 | Dataset ownership (dbt -> marts, Python -> results) | ADR 0017 | BigQuery: `mta_marts` vs `mta_results` |
 | Every score carries the model version | `propensity_scores.model_version` | Compare with the registry champion |
+| Immutable image: tag = model version | Dockerfile, `poe docker-build`, ADR 0018 | `docker images` shows `model-v1` |
+| Training-serving skew guard at startup | `serving/app.py` (`feature_columns`) | `test_feature_mismatch_refuses_to_start` |
+| API and batch share one feature function | `serving/journey.py` | `test_api_features_equal_batch_features` |
+| CI smoke test with a stand-in model (no registry in CI) | `.github/workflows/ci.yml` | GitHub Actions, Docker job |
