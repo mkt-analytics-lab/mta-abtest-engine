@@ -77,3 +77,4 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Training-serving skew guard at startup | `serving/app.py` (`feature_columns`) | `test_feature_mismatch_refuses_to_start` |
 | API and batch share one feature function | `serving/journey.py` | `test_api_features_equal_batch_features` |
 | CI smoke test with a stand-in model (no registry in CI) | `.github/workflows/ci.yml` | GitHub Actions, Docker job |
+| Walking skeleton: scaffolding to remove once real parts exist | ADR 0019 | `git log --stat` of the retire commit |

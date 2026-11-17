@@ -8,71 +8,43 @@ User-level multi-touch attribution and journey optimization
 
 ## Quickstart
 
-Requirements: [uv](https://docs.astral.sh/uv/) and git (Docker optional).
+Requirements: [uv](https://docs.astral.sh/uv/), git, a Google Cloud project with
+BigQuery (see `docs/adr/0003` and `0004`) and Docker (optional).
 
 ```bash
-uv sync                      # create .venv with all dependency groups
-uv run pre-commit install    # run quality checks on every commit
-uv run poe check             # lint + tests
-uv run poe pipeline          # ingest -> validate -> features -> train -> evaluate
-uv run poe serve             # API at http://localhost:8000/docs
+uv sync                          # create .venv with all dependency groups
+uv run pre-commit install        # quality checks on every commit
+cp .env.example .env             # set APP_GCP_PROJECT_ID
+gcloud auth application-default login
+uv run poe check                 # lint + tests + dbt parse (same as CI)
 ```
 
 Run `uv run poe` to list every task.
 
-## Project structure
-
-```
-├── configs/              # versioned pipeline parameters (validated with Pydantic)
-├── data/                 # raw / interim / processed (git-ignored)
-├── docs/
-│   ├── adr/              # Architecture Decision Records
-│   └── mlops_blueprint.md
-├── models/               # trained model artifacts (git-ignored)
-├── notebooks/            # exploration only; reusable logic goes to src/
-├── reports/              # metrics and reports (git-ignored)
-├── src/mta_abtest_engine/
-│   ├── config.py         # settings (env) + project config (YAML)
-│   ├── data/             # ingestion + data contracts
-│   ├── features/         # feature engineering shared by training AND serving
-│   ├── training/         # model training + MLflow tracking
-│   ├── evaluation/       # metrics + quality gate
-│   ├── serving/          # FastAPI app
-│   └── pipelines/        # stage orchestration (CLI)
-└── tests/
-    ├── unit/             # pure functions, config, training-serving parity
-    ├── data/             # data contract tests
-    ├── model/            # behavioural tests (MFT / INV / DIR)
-    └── integration/      # API + end-to-end pipeline
-```
-
 ## Pipeline
 
-| Stage      | Input                        | Output                              |
-|------------|------------------------------|-------------------------------------|
-| `ingest`   | source (synthetic example)   | `data/raw/dataset.csv`              |
-| `validate` | raw data                     | `data/interim/validated.csv`        |
-| `features` | validated data               | `data/processed/{train,test}.csv`   |
-| `train`    | train split                  | `models/model.joblib` + MLflow run  |
-| `evaluate` | model + test split           | `reports/metrics.json` + quality gate |
+| Step | Command | Output |
+|---|---|---|
+| ELT on BigQuery | `uv run poe dbt-build` | `mta_staging`, `mta_intermediate`, `mta_marts` |
+| Extract marts | `uv run poe extract` | `data/raw/*.parquet` (validated) |
+| Propensity models | `uv run poe propensity` | MLflow runs, gate, `challenger` in the registry |
+| Tuning (optional) | `uv run poe tune` | Optuna study, `gbm_tuned` gated vs `gbm` |
+| Promote | `uv run poe promote --reason "..."` | `champion` alias with audit tags |
+| Attribution | `uv run poe attribution` | Markov + baselines, `reports/attribution_*.csv` |
+| Batch scoring | `uv run poe score --start D1 --end D2` | `mta_results.propensity_scores` |
+| Publish attribution | `uv run poe publish-attribution` | `mta_results.attribution_*` |
 
-Run one stage: `uv run python -m mta_abtest_engine.pipelines.run --stage train`.
-Inspect experiments: `uv run poe mlflow-ui` -> http://localhost:5000.
+Inspect experiments and the registry: `uv run poe mlflow-ui` -> http://localhost:5000.
 
 ## Serving
 
 ```bash
-uv run poe serve
-curl -X POST localhost:8000/predict -H "Content-Type: application/json" \
-  -d '{"records": [{"x1": 1.0, "x2": -0.5, "x3": 0.2, "x4": 0.0}]}'
-```
-
-Docker (serving image only contains core + `serving` dependencies):
-
-```bash
-uv run poe pipeline          # make sure models/model.joblib exists
-uv run poe docker-build
-uv run poe docker-run        # then open http://localhost:8000/health
+uv run poe export-champion   # registry champion -> models/
+uv run poe docker-build      # image mta-abtest-engine:model-v<N>
+uv run poe docker-run        # http://localhost:8000/docs
+curl -X POST localhost:8000/score -H "Content-Type: application/json" \
+  -d '{"sessions": [{"session_start_ts": "2021-01-10T18:30:00Z",
+                     "channel_group": "Referral", "funnel_stage": "cart"}]}'
 ```
 
 ## Dependency updates

@@ -20,9 +20,6 @@ dependencies = [
     "scikit-learn>=1.5",
 ]
 
-[project.scripts]
-mta-abtest-engine = "mta_abtest_engine.pipelines.run:main"
-
 # Dependency groups (PEP 735): installed locally, excluded from the production
 # image unless explicitly requested (see Dockerfile).
 [dependency-groups]
@@ -149,10 +146,6 @@ envfile = ".env"
 help = "Build dbt models and run data tests on BigQuery (needs .env + ADC)"
 cmd = "dbt build --project-dir dbt --profiles-dir dbt"
 envfile = ".env"
-
-[tool.poe.tasks.pipeline]
-help = "Run the full pipeline: ingest -> validate -> features -> train -> evaluate"
-cmd = "python -m mta_abtest_engine.pipelines.run --stage all"
 
 [tool.poe.tasks.propensity]
 help = "Session propensity: fit baselines/models, evaluate on test, log to MLflow"

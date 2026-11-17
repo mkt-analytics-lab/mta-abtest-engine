@@ -63,7 +63,8 @@ Follow `docs/mlops_blueprint.md`. Key rules:
 uv sync                  # install
 uv run poe check         # lint + tests (same as CI)
 uv run poe format        # auto-format
-uv run poe pipeline      # full pipeline
+uv run poe propensity    # train, evaluate, gate, register challenger
+uv run poe attribution   # Markov journey attribution
 uv run poe serve         # API on :8000
 uv run poe               # list all tasks
 ```
