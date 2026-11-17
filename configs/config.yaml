@@ -45,6 +45,16 @@ serving:
   results_dataset: mta_results   # owned by Python; dbt owns mta_marts
   scores_table: propensity_scores
 
+monitoring:
+  # Drift, calibration and retraining triggers (ADR 0021)
+  table: monitoring_daily          # in serving.results_dataset
+  report_dir: reports/monitoring   # Evidently HTML reports
+  reference_sample: 20000          # training scoring points used as reference
+  share_drifted_max: 0.3           # alert if more than 30% of features drift
+  psi_max: 0.2                     # alert if propensity PSI > 0.2 (significant)
+  calibration_ratio_min: 0.67      # alert if mean predicted / observed rate
+  calibration_ratio_max: 1.5       #   leaves [0.67, 1.5] on matured labels
+
 tuning:
   # Optuna search for the GBM (ADR 0013). January (test) is never used here:
   # sub-train = scoring points whose label window ends before validation_start,

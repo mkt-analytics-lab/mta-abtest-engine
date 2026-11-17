@@ -7,7 +7,7 @@
 
 Prefect adds retries, run history, logs and schedules. The step logic is not
 duplicated: every task calls the same function as the `poe` commands.
-- daily_scoring: dbt build -> extract marts -> score the day -> publish scores.
+- daily_scoring: dbt build -> extract marts -> score the day -> monitor the day.
 - weekly_retraining: extract -> propensity (may register a `challenger`; promotion
   stays human, ADR 0015) -> attribution -> publish attribution.
 Warehouse steps retry (transient BigQuery / network errors); training does not
@@ -62,6 +62,14 @@ def score(day: dt.date) -> int:
     return run_scoring(cfg, settings, day, day)
 
 
+@task(**WAREHOUSE_RETRIES)
+def monitor(day: dt.date) -> None:
+    from . import monitor as monitoring
+
+    cfg, settings = _context()
+    monitoring.run(cfg, settings, day, day)
+
+
 @task
 def train_and_gate() -> None:
     from . import propensity
@@ -93,7 +101,9 @@ def daily_scoring(score_date: dt.date | None = None, skip_dbt: bool = False) -> 
     if not skip_dbt:
         dbt_build()
     extract()
-    return score(day)
+    scored = score(day)
+    monitor(day)
+    return scored
 
 
 @flow(name="weekly-retraining", log_prints=True)

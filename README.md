@@ -42,6 +42,7 @@ Run `uv run poe` to list every task.
 │   ├── evaluation/       # metrics, bootstrap, gate, behavioural checks
 │   ├── attribution/      # Markov journey model + heuristic baselines
 │   ├── serving/          # batch scoring, BigQuery publishing, FastAPI app
+│   ├── monitoring/       # Evidently drift, PSI, calibration checks
 │   └── pipelines/        # propensity, attribution and Prefect flows
 └── tests/
     ├── unit/             # pure functions, config, parity
@@ -62,6 +63,8 @@ Run `uv run poe` to list every task.
 | Attribution | `uv run poe attribution` | Markov + baselines, `reports/attribution_*.csv` |
 | Batch scoring | `uv run poe score --start D1 --end D2` | `mta_results.propensity_scores` |
 | Publish attribution | `uv run poe publish-attribution` | `mta_results.attribution_*` |
+| Monitoring | `uv run poe monitor --start D1 --end D2` | `mta_results.monitoring_daily`, `reports/monitoring/*.html` |
+| Orchestration | `uv run poe flow daily --date D` / `poe flow-serve` | Prefect runs (daily + weekly) |
 
 Inspect experiments and the registry: `uv run poe mlflow-ui` -> http://localhost:5000.
 
@@ -78,6 +81,7 @@ curl -X POST localhost:8000/score -H "Content-Type: application/json" \
 
 ## Optional components enabled
 - **Prefect** – orchestration with retries and run history: `uv run poe flow`.
+- **Evidently** – data drift report: `uv run poe drift` -> `reports/drift_report.html`.
 
 ## Dependency updates
 

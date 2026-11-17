@@ -80,6 +80,16 @@ class ServingConfig(BaseModel):
     scores_table: str = Field(min_length=1)
 
 
+class MonitoringConfig(BaseModel):
+    table: str = Field(min_length=1)
+    report_dir: Path
+    reference_sample: int = Field(ge=1000)
+    share_drifted_max: float = Field(gt=0, le=1)
+    psi_max: float = Field(gt=0)
+    calibration_ratio_min: float = Field(gt=0)
+    calibration_ratio_max: float = Field(gt=1)
+
+
 class ParamSpec(BaseModel):
     type: Literal["int", "float"]
     low: float
@@ -126,6 +136,7 @@ class ProjectConfig(BaseModel):
     propensity: PropensityConfig
     attribution: AttributionConfig
     serving: ServingConfig
+    monitoring: MonitoringConfig
     tuning: TuningConfig
 
     @model_validator(mode="after")

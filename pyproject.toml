@@ -58,6 +58,13 @@ notebooks = [
 orchestration = [
     "prefect>=3.0",
 ]
+monitoring = [
+    "evidently>=0.7",
+    # evidently 0.7.23 imports a pandas internal removed in pandas 3.1 (verified:
+    # works with 3.0.x, fails with 3.1.1). Pin to 3.0.x - not <3 as the template
+    # does - to keep the project on pandas 3. Remove once evidently is fixed.
+    "pandas>=3.0,<3.1",
+]
 
 [tool.uv]
 # `uv sync` installs every group locally; the Dockerfile installs only `serving`.
@@ -69,6 +76,7 @@ default-groups = [
     "warehouse",
     "notebooks",
     "orchestration",
+    "monitoring",
 ]
 
 [build-system]
@@ -102,6 +110,8 @@ markers = [
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
+    # third-party (evidently) source warning, not our code
+    "ignore:invalid escape sequence:SyntaxWarning",
 ]
 
 [tool.coverage.run]
@@ -175,6 +185,11 @@ envfile = ".env"
 [tool.poe.tasks.publish-attribution]
 help = "Publish attribution reports to BigQuery (mta_results) for Looker"
 cmd = "python -m mta_abtest_engine.serving.batch publish-attribution"
+envfile = ".env"
+
+[tool.poe.tasks.monitor]
+help = "Daily monitoring (drift, calibration, retraining triggers): poe monitor --start D1 [--end D2]"
+cmd = "python -m mta_abtest_engine.pipelines.monitor"
 envfile = ".env"
 
 [tool.poe.tasks.serve]

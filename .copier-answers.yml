@@ -11,5 +11,5 @@ run_setup: true
 use_compose: false
 use_dbt: false
 use_dvc: false
-use_monitoring: false
+use_monitoring: true
 use_prefect: true

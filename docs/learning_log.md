@@ -81,3 +81,7 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Updating a project from the template (`copier update`) and resolving conflicts | ADR 0020 | `git diff` of `.copier-answers.yml` (`_commit: v0.3.1`) |
 | Orchestration: flows, tasks, retries policy, schedules | `pipelines/flow.py` | `uv run prefect server start` + `poe flow daily --date ...` |
 | Retry transient failures, never deterministic ones | `WAREHOUSE_RETRIES` | `test_warehouse_steps_retry_but_training_does_not` |
+| Three things to monitor: data drift, prediction drift, delayed performance | ADR 0021, `pipelines/monitor.py` | `poe monitor --start 2021-01-15 --end 2021-01-31` |
+| PSI and calibration ratio | `monitoring/checks.py` | `test_calibration_ratio_detects_over_prediction` |
+| Label delay: performance of day D - 14 | `monitor_day` | `matured_date` column in `monitoring_daily` |
+| Dependency conflicts: verify, pin narrowly, document | `pyproject.toml` (pandas pin), ADR 0021 | `uv run python -c "import pandas; print(pandas.__version__)"` |

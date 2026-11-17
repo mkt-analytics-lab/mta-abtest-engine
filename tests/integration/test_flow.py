@@ -23,6 +23,7 @@ def calls(monkeypatch):
     monkeypatch.setattr(flow.dbt_build, "fn", lambda: log.append("dbt"))
     monkeypatch.setattr(flow.extract, "fn", lambda: log.append("extract"))
     monkeypatch.setattr(flow.score, "fn", lambda day: log.append(f"score:{day}") or 7)
+    monkeypatch.setattr(flow.monitor, "fn", lambda day: log.append(f"monitor:{day}"))
     monkeypatch.setattr(flow.train_and_gate, "fn", lambda: log.append("train"))
     monkeypatch.setattr(flow.attribute, "fn", lambda: log.append("attribution"))
     monkeypatch.setattr(flow.publish, "fn", lambda: log.append("publish"))
@@ -31,13 +32,13 @@ def calls(monkeypatch):
 
 def test_daily_scoring_runs_steps_in_order(calls):
     assert flow.daily_scoring(dt.date(2021, 1, 15)) == 7
-    assert calls == ["dbt", "extract", "score:2021-01-15"]
+    assert calls == ["dbt", "extract", "score:2021-01-15", "monitor:2021-01-15"]
 
 
 def test_daily_scoring_can_skip_dbt_and_defaults_to_yesterday(calls):
     flow.daily_scoring(skip_dbt=True)
     yesterday = dt.date.today() - dt.timedelta(days=1)
-    assert calls == ["extract", f"score:{yesterday}"]
+    assert calls == ["extract", f"score:{yesterday}", f"monitor:{yesterday}"]
 
 
 def test_weekly_retraining_runs_steps_in_order(calls):
@@ -46,7 +47,13 @@ def test_weekly_retraining_runs_steps_in_order(calls):
 
 
 def test_warehouse_steps_retry_but_training_does_not():
-    for warehouse_task in (flow.dbt_build, flow.extract, flow.score, flow.publish):
+    for warehouse_task in (
+        flow.dbt_build,
+        flow.extract,
+        flow.score,
+        flow.publish,
+        flow.monitor,
+    ):
         assert warehouse_task.retries == 2
     assert flow.train_and_gate.retries == 0
 
@@ -55,6 +62,7 @@ def test_tasks_call_the_same_functions_as_the_poe_commands(monkeypatch):
     """Each task body delegates to the project function (no duplicated logic)."""
     import mta_abtest_engine.data.extract as extract_mod
     import mta_abtest_engine.pipelines.attribution as attribution_mod
+    import mta_abtest_engine.pipelines.monitor as monitor_mod
     import mta_abtest_engine.pipelines.propensity as propensity_mod
     import mta_abtest_engine.serving.batch as batch_mod
 
@@ -70,18 +78,21 @@ def test_tasks_call_the_same_functions_as_the_poe_commands(monkeypatch):
     )
     monkeypatch.setattr(propensity_mod, "run", lambda c, s: seen.append("propensity"))
     monkeypatch.setattr(attribution_mod, "run", lambda c, s: seen.append("attribution"))
+    monkeypatch.setattr(monitor_mod, "run", lambda c, s, a, b: seen.append("monitor"))
 
     flow.extract.fn()
     assert flow.score.fn(dt.date(2021, 1, 2)) == 3
     flow.publish.fn()
     flow.train_and_gate.fn()
     flow.attribute.fn()
+    flow.monitor.fn(dt.date(2021, 1, 2))
     assert seen == [
         "extract",
         "score:2021-01-02:2021-01-02",
         "publish",
         "propensity",
         "attribution",
+        "monitor",
     ]
 
 
