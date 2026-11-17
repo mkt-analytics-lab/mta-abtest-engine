@@ -85,3 +85,7 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | PSI and calibration ratio | `monitoring/checks.py` | `test_calibration_ratio_detects_over_prediction` |
 | Label delay: performance of day D - 14 | `monitor_day` | `matured_date` column in `monitoring_daily` |
 | Dependency conflicts: verify, pin narrowly, document | `pyproject.toml` (pandas pin), ADR 0021 | `uv run python -c "import pandas; print(pandas.__version__)"` |
+| Ratios of rare events need pooling and a minimum count | `calibration_window_days`, `min_matured_positives` | Jan 16 ratio before / after the change |
+| Data-quality alert vs model alert: different actions | `alert_channel_mix`, `action` | `test_channel_mix_change_means_check_tracking_not_retrain` |
+| Monitoring found a tracking change (Jan 21-22) | ADR 0021 update | Channel shares per day on the local Parquet |
+| Schema evolution: adding a column to an existing BigQuery table | `serving/publish.py` (`ALLOW_FIELD_ADDITION`) | Re-run `poe monitor`: old partitions show NULL in new columns |

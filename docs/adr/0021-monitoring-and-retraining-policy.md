@@ -44,3 +44,35 @@ Template backlog: same pin, and a drift module independent of the skeleton.
   recalibration.
 - Thresholds are conventional starting points (PSI 0.2, 30% drifted features);
   tune them with experience.
+
+## Update 2026-11-17: first run, two findings, two changes
+First run (Jan 15-31): calibration alerts every day (expected, ratio 1.4-4.7),
+plus two findings.
+
+1. **Unstable daily calibration.** Jan 16 gave a ratio of 26.0: it evaluates
+   Jan 2 sessions, with almost no purchases. **Change:** pool the last
+   `calibration_window_days` (7) matured days and require
+   `min_matured_positives` (20) purchases; otherwise no calibration verdict.
+2. **Tracking change on Jan 21-22.** Feature drift jumped from 12-24% to 36-44%
+   and propensity PSI from ~0.1 to 0.5-0.7. Share of non-purchase sessions by
+   channel (local Parquet):
+
+   | Channel | Jan 17-20 | Jan 22-26 |
+   |---|---|---|
+   | Direct | ~11% | ~0.7% |
+   | Obfuscated | ~10% | ~1% |
+   | Paid Search | ~2.4% | ~0% |
+   | Organic Search | ~27% | ~43% |
+   | Affiliates | ~0.2% | ~2% |
+   | Referral / Unknown | ~20% / ~30% | ~23% / ~29% |
+
+   A 15x drop of Direct overnight, offset by Organic, is a reclassification of
+   source / medium (tracking, consent or processing change in the GA4 property or
+   the public sample), not customer behaviour. Cause not verifiable without the
+   GA4 property. Channel credit after Jan 21 is not comparable with before.
+   **Change:** a data-quality check, total variation distance between the day's
+   channel shares and training (`channel_mix_tvd_max` 0.15). When it fires the
+   action is `check_tracking` and retraining is **not** recommended (retraining
+   on broken data would bake the error into the model). New columns:
+   `channel_mix_tvd`, `channel_max_change`, `alert_channel_mix`, `action`
+   (`none` / `retrain` / `check_tracking`).

@@ -36,8 +36,12 @@ MONITOR_COLUMNS = [
     "share_drifted_features",
     "drifted_features",
     "psi_propensity",
+    "channel_mix_tvd",
+    "channel_max_change",
+    "matured_window_start",
     "matured_date",
     "matured_n",
+    "matured_positives",
     "observed_rate",
     "calibration_ratio",
     "log_loss",
@@ -47,7 +51,9 @@ MONITOR_COLUMNS = [
     "alert_feature_drift",
     "alert_prediction_drift",
     "alert_calibration",
+    "alert_channel_mix",
     "retrain_recommended",
+    "action",
 ]
 
 
@@ -62,16 +68,35 @@ def reference_set(
 
 
 def day_predictions(
-    touchpoints: pd.DataFrame, day: dt.date, model: Any
-) -> tuple[pd.DataFrame, pd.Series, np.ndarray]:
-    """Features, session keys and predictions of the sessions scored on ``day``."""
+    touchpoints: pd.DataFrame,
+    day: dt.date,
+    model: Any,
+    first_day: dt.date | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray]:
+    """Features, sessions and predictions of the sessions scored from ``first_day``
+    (default: ``day``) to ``day`` included. Features only use history up to the
+    session itself (cumulative), so a longer window does not leak."""
+    first_day = first_day or day
     end = pd.Timestamp(day, tz="UTC") + pd.Timedelta(days=1)
     history = touchpoints[touchpoints["session_start_ts"] < end]
-    sessions = sessions_to_score(history, day)
+    sessions = pd.concat(
+        [sessions_to_score(history, d) for d in pd.date_range(first_day, day).date]
+    )
     if sessions.empty:
-        return pd.DataFrame(), pd.Series(dtype=str), np.array([])
+        return pd.DataFrame(), sessions, np.array([])
     features = build_scoring_features(history, sessions["session_key"])
-    return features, sessions["session_key"], model.predict_proba(features)[:, 1]
+    return features, sessions, model.predict_proba(features)[:, 1]
+
+
+def channel_mix_change(reference: pd.Series, current: pd.Series) -> tuple[float, str]:
+    """Total variation distance between channel shares, and the biggest mover."""
+    ref = reference.value_counts(normalize=True)
+    cur = current.value_counts(normalize=True)
+    diff = cur.reindex(ref.index.union(cur.index), fill_value=0) - ref.reindex(
+        ref.index.union(cur.index), fill_value=0
+    )
+    top = diff.abs().idxmax()
+    return float(diff.abs().sum() / 2), f"{top} {diff[top] * 100:+.1f}pp"
 
 
 def monitor_day(
@@ -82,14 +107,17 @@ def monitor_day(
     model_version: str,
     day: dt.date,
     reference: tuple[pd.DataFrame, np.ndarray],
+    reference_channels: pd.Series,
 ) -> dict[str, Any]:
     m = cfg.monitoring
     ref_features, ref_pred = reference
     row: dict[str, Any] = {"monitor_date": day, "model_version": model_version}
 
-    features, _, pred = day_predictions(touchpoints, day, model)
+    features, sessions, pred = day_predictions(touchpoints, day, model)
     row["n_scored"] = len(pred)
     if len(pred):
+        tvd, mover = channel_mix_change(reference_channels, sessions["channel_group"])
+        row.update(channel_mix_tvd=tvd, channel_max_change=mover)
         drift = feature_drift(
             ref_features, features, m.report_dir / f"drift_{day:%Y%m%d}.html"
         )
@@ -100,11 +128,26 @@ def monitor_day(
             psi_propensity=psi(ref_pred, pred),
         )
 
+    # Matured window: the sessions of the last `calibration_window_days` days whose
+    # labels exist today. A single day has too few purchases for a stable ratio.
     matured = day - dt.timedelta(days=cfg.journey.horizon_days)
-    _, keys, matured_pred = day_predictions(touchpoints, matured, model)
-    labels = points.set_index("session_key")["label"].reindex(keys).to_numpy()
-    row.update(matured_date=matured, matured_n=len(matured_pred))
-    if len(matured_pred) and not np.isnan(labels).any():
+    window_start = matured - dt.timedelta(days=m.calibration_window_days - 1)
+    _, matured_sessions, matured_pred = day_predictions(
+        touchpoints, matured, model, window_start
+    )
+    labels = (
+        points.set_index("session_key")["label"]
+        .reindex(matured_sessions.get("session_key", pd.Series(dtype=str)))
+        .to_numpy()
+    )
+    positives = int(np.nansum(labels)) if len(labels) else 0
+    row.update(
+        matured_window_start=window_start,
+        matured_date=matured,
+        matured_n=len(matured_pred),
+        matured_positives=positives,
+    )
+    if positives >= m.min_matured_positives and not np.isnan(labels).any():
         row.update(matured_performance(labels.astype(int), matured_pred))
 
     row["alert_feature_drift"] = (
@@ -115,8 +158,19 @@ def monitor_day(
     row["alert_calibration"] = ratio is not None and not (
         m.calibration_ratio_min <= ratio <= m.calibration_ratio_max
     )
-    row["retrain_recommended"] = row["alert_calibration"] or (
+    row["alert_channel_mix"] = row.get("channel_mix_tvd", 0) > m.channel_mix_tvd_max
+    model_alert = row["alert_calibration"] or (
         row["alert_feature_drift"] and row["alert_prediction_drift"]
+    )
+    # A sudden channel-mix change is first a data / tracking question: retraining
+    # on broken data would bake the error into the model (ADR 0021 update).
+    row["retrain_recommended"] = model_alert and not row["alert_channel_mix"]
+    row["action"] = (
+        "check_tracking"
+        if row["alert_channel_mix"]
+        else "retrain"
+        if model_alert
+        else "none"
     )
     return row
 
@@ -142,8 +196,14 @@ def run(
     reference = reference_set(
         touchpoints, points, model, cfg.monitoring.reference_sample, cfg.random_seed
     )
+    train_keys = points.loc[points["split"] == "train", "session_key"]
+    reference_channels = touchpoints.loc[
+        touchpoints["session_key"].isin(train_keys), "channel_group"
+    ]
     rows = [
-        monitor_day(touchpoints, points, cfg, model, version, day, reference)
+        monitor_day(
+            touchpoints, points, cfg, model, version, day, reference, reference_channels
+        )
         for day in pd.date_range(start, end, freq="D").date
     ]
     table = pd.DataFrame(rows).reindex(columns=MONITOR_COLUMNS)
@@ -165,8 +225,11 @@ def run(
         "monitor_date",
         "share_drifted_features",
         "psi_propensity",
+        "channel_mix_tvd",
+        "channel_max_change",
+        "matured_positives",
         "calibration_ratio",
-        "retrain_recommended",
+        "action",
     ]
     logger.info(
         "Monitoring\n{}", table.reindex(columns=cols).round(3).to_string(index=False)

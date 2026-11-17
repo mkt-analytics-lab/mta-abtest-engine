@@ -91,6 +91,7 @@ def test_write_partition_is_idempotent_per_day():
     assert dest == destination == "p.d.t$20210110"
     assert config.write_disposition == "WRITE_TRUNCATE"
     assert config.time_partitioning.field == "score_date"
+    assert "ALLOW_FIELD_ADDITION" in config.schema_update_options
 
 
 def test_run_scoring_writes_one_partition_per_day(tmp_path, monkeypatch, tp):

@@ -54,6 +54,9 @@ monitoring:
   psi_max: 0.2                     # alert if propensity PSI > 0.2 (significant)
   calibration_ratio_min: 0.67      # alert if mean predicted / observed rate
   calibration_ratio_max: 1.5       #   leaves [0.67, 1.5] on matured labels
+  calibration_window_days: 7       # matured days pooled for the ratio
+  min_matured_positives: 20        # fewer purchases -> no calibration verdict
+  channel_mix_tvd_max: 0.15        # data-quality alert: channel shares vs train
 
 tuning:
   # Optuna search for the GBM (ADR 0013). January (test) is never used here:

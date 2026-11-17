@@ -37,3 +37,14 @@ def test_feature_drift_flags_the_shifted_column(tmp_path):
     assert drift.drifted_columns == ["a"]
     assert drift.share_drifted == pytest.approx(0.5)
     assert drift.report_path.exists()
+
+
+def test_channel_mix_change_reports_distance_and_biggest_mover():
+    from mta_abtest_engine.pipelines.monitor import channel_mix_change
+
+    ref = pd.Series(["Direct"] * 10 + ["Organic Search"] * 90)
+    cur = pd.Series(["Direct"] * 1 + ["Organic Search"] * 99)
+    tvd, mover = channel_mix_change(ref, cur)
+    assert tvd == pytest.approx(0.09)
+    assert mover in {"Direct -9.0pp", "Organic Search +9.0pp"}
+    assert channel_mix_change(ref, ref)[0] == 0

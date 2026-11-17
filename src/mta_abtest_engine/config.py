@@ -88,6 +88,9 @@ class MonitoringConfig(BaseModel):
     psi_max: float = Field(gt=0)
     calibration_ratio_min: float = Field(gt=0)
     calibration_ratio_max: float = Field(gt=1)
+    calibration_window_days: int = Field(ge=1, le=28)
+    min_matured_positives: int = Field(ge=1)
+    channel_mix_tvd_max: float = Field(gt=0, le=1)
 
 
 class ParamSpec(BaseModel):

@@ -2,7 +2,8 @@
 
 dbt owns `mta_marts`; Python owns `mta_results`. Writes are idempotent:
 - daily scores go to their date partition (partition decorator + WRITE_TRUNCATE),
-  so re-scoring a day replaces it instead of duplicating rows;
+  so re-scoring a day replaces it instead of duplicating rows; new columns are
+  added to the table (schema evolution) instead of failing the load;
 - report tables (attribution) are replaced as a whole.
 Load jobs are free in BigQuery (no bytes billed).
 """
@@ -33,6 +34,13 @@ def write_partition(
         time_partitioning=bigquery.TimePartitioning(
             type_=bigquery.TimePartitioningType.DAY, field=field
         ),
+        # Schema evolution: a new column (e.g. a new monitoring metric) is added
+        # to the table instead of failing; old partitions get NULL for it.
+        # BigQuery allows this with WRITE_TRUNCATE only on a partition decorator.
+        schema_update_options=[
+            bigquery.SchemaUpdateOption.ALLOW_FIELD_ADDITION,
+            bigquery.SchemaUpdateOption.ALLOW_FIELD_RELAXATION,
+        ],
     )
     client.load_table_from_dataframe(df, destination, job_config=config).result()
     logger.info("Wrote {} rows -> {}", len(df), destination)

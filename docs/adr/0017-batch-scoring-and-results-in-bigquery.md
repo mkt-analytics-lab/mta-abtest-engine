@@ -36,3 +36,9 @@ score traceable to a registry version.
 - The GA4 sample is static: "daily" scoring is a backfill over Jan 2021, the same
   mechanism a scheduler (phase 6) would run every morning on new data.
 - Load jobs are free; storage of scores is small (well under the free tier).
+
+## Update 2026-11-17: schema evolution
+Adding monitoring columns (ADR 0021) made the partition load fail ("Cannot add
+fields"). Partition loads now allow field addition and relaxation: new columns are
+added, existing partitions get NULL. Removing or renaming a column still requires
+a deliberate migration.
