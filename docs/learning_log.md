@@ -53,3 +53,6 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Bayesian search (TPE), pruning with warm start, resumable studies | ADR 0013 | `test_study_finds_params_and_is_resumable`; `optuna.db` |
 | Nested MLflow runs: one parent per study, one child per trial | `tuning.run` | MLflow UI, run `gbm-tuning` |
 | Test touched once: tuned challenger gated against current model | `challenge_current_gbm` | Gate line `gbm_tuned vs gbm` |
+| Behavioural tests: MFT / DIR / INV from domain knowledge | `evaluation/behavior.py` | `poe propensity` prints each check |
+| Test your tests: a deliberately backwards model must be caught | `tests/model/test_propensity_behavior.py` | `test_backwards_model_is_caught` |
+| A tuning result that does not pass the gate is still a result | ADR 0013 update | MLflow run `gbm_tuned`, `gate_passed=False` |

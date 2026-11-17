@@ -40,3 +40,12 @@ search space means a new client changes YAML, not code.
   parameters may not transfer; the gate decides.
 - With 350 test positives, small gains may not be distinguishable: expected.
 - With more data, switch to several temporal validation windows (average loss).
+
+## Update 2026-11-13: first result
+40 trials. Best validation log-loss 0.0819 (December; not comparable with test
+log-loss, the base rate differs) with learning_rate 0.029, max_iter 170,
+max_leaf_nodes 10, min_samples_leaf 456, l2 1.62. On the January test `gbm_tuned`
+log-loss 0.0289 vs `gbm` 0.0288; difference interval [+0.0000, +0.0003]:
+**gate FAIL**, the default GBM stays. `min_samples_leaf` landed near the upper
+bound (500): the small sub-train (Nov 1-17) favours heavy regularization. Revisit
+the range and use several validation windows when more data is available.

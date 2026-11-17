@@ -17,6 +17,7 @@ import pandas as pd
 from loguru import logger
 
 from ..config import ProjectConfig, Settings, get_settings, load_config
+from ..evaluation.behavior import CheckResult, all_passed, run_behavioral_checks
 from ..evaluation.gate import GateResult, evaluate_gate
 from ..evaluation.metrics import bootstrap_metrics, summarize
 from ..features.journeys import build_scoring_points
@@ -99,6 +100,7 @@ def log_runs(
     settings: Settings,
     tags: dict[str, str],
     gates: dict[str, GateResult] | None = None,
+    behavior: dict[str, list[CheckResult]] | None = None,
 ) -> None:
     """One MLflow run per model: params, metrics with CIs, trace and gate tags."""
     import mlflow  # training-only dependency
@@ -109,6 +111,16 @@ def log_runs(
     for model_name, rows in summary.groupby("model"):
         with mlflow.start_run(run_name=model_name):
             mlflow.set_tags({**tags, "model": model_name})
+            checks = (behavior or {}).get(model_name)
+            if checks is not None:
+                mlflow.set_tag("behavior_passed", all_passed(checks))
+                mlflow.log_dict(
+                    {
+                        c.name: {"kind": c.kind, "passed": c.passed, "detail": c.detail}
+                        for c in checks
+                    },
+                    "behavior_checks.json",
+                )
             gate = (gates or {}).get(model_name)
             if gate is not None:
                 mlflow.set_tags(
@@ -149,13 +161,31 @@ def run(cfg: ProjectConfig, settings: Settings) -> pd.DataFrame:
         models, points, features, cfg.propensity.bootstrap_samples, cfg.random_seed
     )
     gates = gate_results(boot, list(models), cfg.propensity.reference_model)
+    base_rate = float(points.loc[points["split"] == "train", "label"].mean())
+    behavior = {name: run_behavioral_checks(models[name], base_rate) for name in gates}
     report = cfg.propensity.report_path
     report.parent.mkdir(parents=True, exist_ok=True)
     summary.to_csv(report, index=False)
     log_runs(
-        summary, points, cfg, settings, trace_tags(cfg.data.touchpoints_path), gates
+        summary,
+        points,
+        cfg,
+        settings,
+        trace_tags(cfg.data.touchpoints_path),
+        gates,
+        behavior,
     )
     logger.info("Propensity report -> {}\n{}", report, summary.round(4).to_string())
+    for name, checks in behavior.items():
+        for c in checks:
+            logger.info(
+                "Behaviour {} [{}] {}: {} ({})",
+                name,
+                c.kind,
+                c.name,
+                "PASS" if c.passed else "FAIL",
+                c.detail,
+            )
     for gate in gates.values():
         logger.info(
             "Gate {} vs {}: {} | log_loss diff CI {} | pr_auc diff CI {} | "
