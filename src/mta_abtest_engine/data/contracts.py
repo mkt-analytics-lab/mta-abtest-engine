@@ -102,3 +102,21 @@ SCHEMAS: dict[str, pa.DataFrameSchema] = {
 def validate_mart(name: str, df: pd.DataFrame) -> pd.DataFrame:
     """Validate a mart against its contract; raises SchemaErrors listing all issues."""
     return SCHEMAS[name].validate(df, lazy=True)
+
+
+# Pluggable benchmark contract (ADR 0002, 0016): any attribution source - our
+# models, a GA4 export adapter, later the MMM - must produce this table.
+ChannelCreditSchema = pa.DataFrameSchema(
+    columns={
+        "model": pa.Column(str),
+        "channel": pa.Column(str, pa.Check.isin(CHANNEL_GROUPS)),
+        "conversions_credit": pa.Column(float, pa.Check.ge(0)),
+        "revenue_credit": pa.Column(float, pa.Check.ge(0)),
+    },
+    checks=pa.Check(
+        lambda df: not df.duplicated(["model", "channel"]).any(),
+        error="one row per (model, channel)",
+    ),
+    strict=False,  # sources may add columns (e.g. confidence intervals)
+    coerce=True,
+)

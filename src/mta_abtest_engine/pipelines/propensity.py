@@ -89,15 +89,28 @@ def evaluate_models(
 
 
 def trace_tags(data_path: Path) -> dict[str, str]:
-    """What code and data produced a run (reproducibility)."""
-    try:
-        commit = subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        commit = "unknown"
+    """What code and data produced a run (reproducibility).
+
+    ``git_dirty`` is "True" when the working tree had uncommitted changes: the
+    commit alone then does not reproduce the code that ran.
+    """
+
+    def git(*args: str) -> str | None:
+        try:
+            return subprocess.run(
+                ["git", *args], capture_output=True, text=True, check=True
+            ).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            return None
+
+    commit = git("rev-parse", "HEAD")
+    status = git("status", "--porcelain", "--untracked-files=no")
     data_hash = hashlib.sha256(data_path.read_bytes()).hexdigest()[:16]
-    return {"git_commit": commit, "data_sha256": data_hash}
+    return {
+        "git_commit": commit or "unknown",
+        "git_dirty": "unknown" if status is None else str(bool(status)),
+        "data_sha256": data_hash,
+    }
 
 
 def log_runs(
@@ -261,7 +274,8 @@ def run(cfg: ProjectConfig, settings: Settings) -> pd.DataFrame:
         "model": challenger,
         "gate_reference": gate.reference,
         "gate_log_loss_diff_ci": _fmt(gate.log_loss_diff),
-        "beats_champion": str(champion_gates is not None),
+        # True: it also beat the champion; False: there was no champion yet.
+        "compared_with_champion": str(champion_gates is not None),
     }
     register_challenger(
         run_ids[challenger],

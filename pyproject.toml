@@ -166,6 +166,10 @@ cmd = "python -m mta_abtest_engine.training.tuning"
 help = "Promote the MLflow challenger to champion: poe promote --reason \"...\" [--version N]"
 cmd = "python -m mta_abtest_engine.training.registry"
 
+[tool.poe.tasks.attribution]
+help = "Markov journey attribution + heuristic baselines, channel benchmark table"
+cmd = "python -m mta_abtest_engine.pipelines.attribution"
+
 [tool.poe.tasks.serve]
 help = "Run the prediction API locally with auto-reload"
 cmd = "uvicorn mta_abtest_engine.serving.app:app --reload --port 8000"

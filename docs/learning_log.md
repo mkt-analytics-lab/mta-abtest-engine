@@ -63,3 +63,8 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Champion re-evaluated on the same data (no retraining) | `PrefittedModel` | `champion` row in the propensity report |
 | Safe model serialization (skops) and explicit trusted types | `register_challenger` | `MLmodel` file of the registered version |
 | Explicit artifact location (never relative to the cwd) | `use_experiment`, `.env.example` | Experiment details in MLflow UI |
+| A commit hash is not enough: record uncommitted changes (`git_dirty`) | `trace_tags` | Train with a modified file: tag is True |
+| Absorbing Markov chain and removal effect | `attribution/markov.py` | `tests/unit/test_markov.py` hand-computed cases |
+| Heuristic baselines and a GA4 last-click proxy | `attribution/heuristics.py` | `test_last_non_direct_skips_direct_unless_direct_only` |
+| A contract for pluggable sources (models, GA4, MMM) | `ChannelCreditSchema` | `test_contract_rejects_unknown_channel_and_duplicates` |
+| Bootstrap by resampling path counts (multinomial) | `markov_attribution` | Width of `conversions_ci_*` per channel |

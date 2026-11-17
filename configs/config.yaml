@@ -50,6 +50,12 @@ propensity:
     l2_regularization: 1.0
     early_stopping: true       # stops on a validation split taken from train
 
+attribution:
+  # Markov journey attribution + heuristic baselines (ADR 0016)
+  experiment_name: journey-attribution
+  report_dir: reports
+  bootstrap_samples: 100     # resamples of journeys for channel-credit intervals
+
 tuning:
   # Optuna search for the GBM (ADR 0013). January (test) is never used here:
   # sub-train = scoring points whose label window ends before validation_start,

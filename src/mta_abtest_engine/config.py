@@ -85,6 +85,12 @@ class PropensityConfig(BaseModel):
     gbm: dict[str, Any] = Field(default_factory=dict)
 
 
+class AttributionConfig(BaseModel):
+    experiment_name: str
+    report_dir: Path
+    bootstrap_samples: int = Field(ge=20, le=2000)
+
+
 class ParamSpec(BaseModel):
     type: Literal["int", "float"]
     low: float
@@ -135,6 +141,7 @@ class ProjectConfig(BaseModel):
     model: ModelConfig
     evaluation: EvaluationConfig
     propensity: PropensityConfig
+    attribution: AttributionConfig
     tuning: TuningConfig
     tracking: TrackingConfig
 

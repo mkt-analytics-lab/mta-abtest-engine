@@ -25,7 +25,8 @@ Option 2. Registered model `session-propensity` (MLflow registry, aliases).
 - The registered artifact is **exactly the evaluated model** (fit on train only),
   with an explicit signature (26 float features -> probability), stored with
   skops (safe loading); its own internal types are declared trusted.
-- Version tags: git commit, data hash, gate intervals; promotion adds
+- Version tags: git commit, `git_dirty` (uncommitted changes when it ran), data
+  hash, gate intervals, `compared_with_champion`; promotion adds
   `promoted_by`, `promoted_at`, `promotion_reason`, `previous_champion`.
 - Rollback: `poe promote --version N --reason ...`.
 - Artifacts go to an explicit location (`APP_MLFLOW_ARTIFACT_LOCATION`, default

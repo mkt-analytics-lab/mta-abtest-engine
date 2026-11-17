@@ -82,6 +82,27 @@ def test_trace_tags_identify_code_and_data(tmp_path):
     tags = trace_tags(data)
     assert tags["data_sha256"] == trace_tags(data)["data_sha256"]  # deterministic
     assert tags["git_commit"]
+    assert tags["git_dirty"] in {"True", "False", "unknown"}
+
+
+def test_trace_tags_flag_uncommitted_changes(tmp_path, monkeypatch):
+    import subprocess
+
+    from mta_abtest_engine.pipelines.propensity import trace_tags
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git = ["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t"]
+    subprocess.run([*git, "init", "-q"], check=True)
+    (repo / "code.py").write_text("x = 1\n")
+    subprocess.run([*git, "add", "."], check=True)
+    subprocess.run([*git, "commit", "-qm", "c"], check=True)
+    data = tmp_path / "d.parquet"
+    data.write_bytes(b"d")
+    monkeypatch.chdir(repo)
+    assert trace_tags(data)["git_dirty"] == "False"
+    (repo / "code.py").write_text("x = 2\n")
+    assert trace_tags(data)["git_dirty"] == "True"
 
 
 def test_run_writes_report_and_logs(tmp_path, monkeypatch, cfg, synthetic):
