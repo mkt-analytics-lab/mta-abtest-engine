@@ -27,6 +27,8 @@ from ..config import ProjectConfig, Settings, get_settings, load_config
 from ..data.contracts import ChannelCreditSchema
 from ..features.journeys import build_journey_dataset
 
+CLOSING = "closing"
+
 
 def build_paths(touchpoints: pd.DataFrame, cfg: ProjectConfig) -> pd.DataFrame:
     """One row per fully observed journey: states, channels, label, revenue."""
@@ -37,9 +39,13 @@ def build_paths(touchpoints: pd.DataFrame, cfg: ProjectConfig) -> pd.DataFrame:
     windowed = windowed[windowed["split"] != "excluded"].sort_values(
         ["user_pseudo_id", "touch_position"]
     )
-    windowed = windowed.assign(
-        state=windowed["channel_group"] + ":" + windowed["funnel_stage_pre_purchase"]
+    # The converting session is a "closing" state; earlier sessions keep their
+    # funnel stage ("assist" states). Without this split every conversion passes
+    # through a ':checkout' state and those dominate the ranking (ADR 0016).
+    stage = windowed["funnel_stage_pre_purchase"].where(
+        ~windowed["is_conversion_touch"], CLOSING
     )
+    windowed = windowed.assign(state=windowed["channel_group"] + ":" + stage)
     paths = windowed.groupby("user_pseudo_id").agg(
         states=("state", tuple), channels=("channel_group", list)
     )
@@ -66,6 +72,10 @@ def markov_attribution(
     states = pd.DataFrame(
         {
             "state": state_effects.index,
+            "role": [
+                "closing" if st.endswith(f":{CLOSING}") else "assist"
+                for st in state_effects.index
+            ],
             "visits": visits[state_effects.index].to_numpy(),
             "removal_effect": state_effects.to_numpy(),
             "conversions_credit": credits(state_effects, conversions).to_numpy(),
@@ -159,12 +169,13 @@ def run(cfg: ProjectConfig, settings: Settings) -> pd.DataFrame:
         .round(1)
     )
     logger.info(
-        "Journeys: {} | conversions: {} | P(conv): {:.4f}\nTop states:\n{}"
-        "\nChannel credit (conversions):\n{}",
+        "Journeys: {} | conversions: {} | P(conv): {:.4f}\nClosing states:\n{}"
+        "\nTop assist states:\n{}\nChannel credit (conversions):\n{}",
         len(paths),
         int(paths["converted"].sum()),
         p_conv,
-        states.head(10).round(4).to_string(),
+        states[states["role"] == "closing"].round(4).to_string(index=False),
+        states[states["role"] == "assist"].head(10).round(4).to_string(index=False),
         pivot.to_string(),
     )
     return benchmark

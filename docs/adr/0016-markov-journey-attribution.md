@@ -42,3 +42,13 @@ question; channel-level ones feed the GA4 benchmark and the MTA-MMM comparison.
 - Attribution remains correlational (ADR 0002): validate with experiments.
 - Rare states (Email, Affiliates) have wide intervals: read with their visits.
 - GA4 proxy is not GA4: real DDA / last click must come from the GA4 adapter.
+
+## Update 2026-11-17: closing vs assist states
+First run (193,490 journeys, 3,046 conversions): the top states were all
+`<channel>:checkout`, because the converting session is always labelled
+checkout (`funnel_stage_pre_purchase`) and every conversion passes through it -
+a disguised last touch. Options: (A) label the converting session
+`<channel>:closing` and report closing and assist states separately; (B) keep and
+document; (C) drop the stage. **Decision: A.** Channel credit is computed the same
+way (all states of a channel removed); it may shift slightly because the state
+space is finer.

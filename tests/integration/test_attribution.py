@@ -26,14 +26,23 @@ def tp(touchpoints_df):
     return validate_mart("fct_touchpoints", touchpoints_df)
 
 
-def test_paths_use_channel_and_pre_purchase_stage(cfg, tp):
+def test_paths_use_channel_and_stage_with_closing_session(cfg, tp):
     paths = attribution.build_paths(tp, cfg).set_index("user_pseudo_id")
     assert paths.loc["u2", "states"] == (
         "Paid Search:browse",
         "Referral:product",
-        "Organic Search:checkout",
+        "Organic Search:closing",
     )
     assert paths.loc["u2", "converted"]
+
+
+def test_states_are_split_into_closing_and_assist(cfg, tp):
+    paths = attribution.build_paths(tp, cfg)
+    states, _, _ = attribution.markov_attribution(paths, 20, 0)
+    roles = dict(zip(states["state"], states["role"], strict=True))
+    assert roles["Organic Search:closing"] == "closing"
+    assert roles["Referral:product"] == "assist"
+    assert not any(s.endswith(":checkout") and roles[s] == "closing" for s in roles)
 
 
 def test_markov_credits_add_up_to_conversions(cfg, tp):

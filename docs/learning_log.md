@@ -68,3 +68,4 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | Heuristic baselines and a GA4 last-click proxy | `attribution/heuristics.py` | `test_last_non_direct_skips_direct_unless_direct_only` |
 | A contract for pluggable sources (models, GA4, MMM) | `ChannelCreditSchema` | `test_contract_rejects_unknown_channel_and_duplicates` |
 | Bootstrap by resampling path counts (multinomial) | `markov_attribution` | Width of `conversions_ci_*` per channel |
+| A modelling choice can create a fake finding (checkout states = disguised last touch) | ADR 0016 update | `role` column in `attribution_states.csv` |
