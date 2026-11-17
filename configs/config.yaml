@@ -35,6 +35,7 @@ evaluation:
 propensity:
   # Session propensity model (ADR 0010-0012)
   experiment_name: session-propensity
+  registered_model_name: session-propensity   # MLflow registry (ADR 0015)
   report_path: reports/propensity_metrics.csv
   bootstrap_samples: 200     # user-level resamples for 95% intervals
   reference_model: funnel_rule   # the gate compares ML candidates against it

@@ -121,3 +121,39 @@ def test_gate_tags_are_logged(tmp_path, cfg, synthetic):
     gated = runs[runs["tags.model"].isin(["logistic", "gbm"])]
     assert gated["tags.gate_passed"].isin(["True", "False"]).all()
     assert gated["tags.gate_reference"].eq("funnel_rule").all()
+
+
+def test_challenger_is_registered_then_champion_joins_the_ladder(
+    tmp_path, monkeypatch, cfg, synthetic
+):
+    from mlflow import MlflowClient
+
+    from mta_abtest_engine.pipelines import propensity
+    from mta_abtest_engine.training import registry
+
+    data = tmp_path / "tp.parquet"
+    pd.DataFrame({"a": [1]}).to_parquet(data)
+    cfg.data.touchpoints_path = data
+    cfg.propensity.bootstrap_samples = 50
+    cfg.propensity.report_path = tmp_path / "report.csv"
+    cfg.propensity.registered_model_name = "it-propensity"
+    monkeypatch.setattr(propensity, "build_dataset", lambda tp, c: synthetic)
+    monkeypatch.setattr(propensity, "select_challenger", lambda *a: "gbm")
+    settings = Settings(
+        _env_file=None, mlflow_tracking_uri=f"sqlite:///{tmp_path / 'm.db'}"
+    )
+
+    propensity.run(cfg, settings)  # registers gbm as challenger
+    registry.promote("it-propensity", "test", user="ci")
+    summary = propensity.run(cfg, settings)  # champion is now evaluated too
+
+    assert "champion" in set(summary["model"])
+    client = MlflowClient()
+    assert (
+        str(client.get_model_version_by_alias("it-propensity", "champion").version)
+        == "1"
+    )
+    assert (
+        str(client.get_model_version_by_alias("it-propensity", "challenger").version)
+        == "2"
+    )

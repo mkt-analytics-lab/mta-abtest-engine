@@ -26,6 +26,7 @@ from ..evaluation.gate import GateResult, evaluate_gate
 from ..pipelines.propensity import build_dataset, evaluate_models, log_runs, trace_tags
 from ..training.baselines import FunnelRuleModel
 from ..training.propensity_models import build_gbm
+from ..training.registry import use_experiment
 
 EPS = 1e-6
 
@@ -151,8 +152,11 @@ def run(cfg: ProjectConfig, settings: Settings) -> GateResult:
     import mlflow
 
     points, features = build_dataset(pd.read_parquet(cfg.data.touchpoints_path), cfg)
-    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
-    mlflow.set_experiment(cfg.propensity.experiment_name)
+    use_experiment(
+        settings.mlflow_tracking_uri,
+        cfg.propensity.experiment_name,
+        settings.mlflow_artifact_location,
+    )
 
     def log_trial(trial: optuna.Trial, params: dict[str, Any], loss: float) -> None:
         with mlflow.start_run(run_name=f"trial-{trial.number}", nested=True):

@@ -58,3 +58,8 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | A tuning result that does not pass the gate is still a result | ADR 0013 update | MLflow run `gbm_tuned`, `gate_passed=False` |
 | When a behavioural check fails: test the assumption on raw data before changing model or check | ADR 0014 update | Cart vs checkout rates with a two-proportion interval |
 | Clean test output: silence known third-party warnings narrowly, keep real ones | `tests/conftest.py` | `uv run poe test` shows no ResourceWarning |
+| Registry, aliases `champion` / `challenger`, signature | `training/registry.py`, ADR 0015 | MLflow UI > Models > `session-propensity` |
+| Human-approved promotion with audit tags and rollback | `poe promote --reason ...` | Version tags `promoted_by`, `previous_champion` |
+| Champion re-evaluated on the same data (no retraining) | `PrefittedModel` | `champion` row in the propensity report |
+| Safe model serialization (skops) and explicit trusted types | `register_challenger` | `MLmodel` file of the registered version |
+| Explicit artifact location (never relative to the cwd) | `use_experiment`, `.env.example` | Experiment details in MLflow UI |

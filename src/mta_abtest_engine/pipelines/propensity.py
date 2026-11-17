@@ -24,6 +24,13 @@ from ..features.journeys import build_scoring_points
 from ..features.scoring import build_scoring_features
 from ..training.baselines import BaseRateModel, FunnelRuleModel
 from ..training.propensity_models import build_gbm, build_logistic
+from ..training.registry import (
+    CHAMPION,
+    PrefittedModel,
+    load_alias,
+    register_challenger,
+    use_experiment,
+)
 
 
 def build_dataset(
@@ -51,7 +58,7 @@ def gate_results(
     boot: pd.DataFrame, models: list[str], reference: str
 ) -> dict[str, GateResult]:
     """Gate every model except the baselines against the reference."""
-    candidates = [m for m in models if m not in ("base_rate", reference)]
+    candidates = [m for m in models if m not in ("base_rate", "champion", reference)]
     return {m: evaluate_gate(boot, m, reference) for m in candidates}
 
 
@@ -101,15 +108,22 @@ def log_runs(
     tags: dict[str, str],
     gates: dict[str, GateResult] | None = None,
     behavior: dict[str, list[CheckResult]] | None = None,
-) -> None:
-    """One MLflow run per model: params, metrics with CIs, trace and gate tags."""
+) -> dict[str, str]:
+    """One MLflow run per model: params, metrics with CIs, trace and gate tags.
+
+    Returns the run id of each model (to attach the registered model later)."""
     import mlflow  # training-only dependency
 
-    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
-    mlflow.set_experiment(cfg.propensity.experiment_name)
+    use_experiment(
+        settings.mlflow_tracking_uri,
+        cfg.propensity.experiment_name,
+        settings.mlflow_artifact_location,
+    )
     counts = points.groupby("split")["label"].agg(["size", "sum"])
+    run_ids: dict[str, str] = {}
     for model_name, rows in summary.groupby("model"):
-        with mlflow.start_run(run_name=model_name):
+        with mlflow.start_run(run_name=model_name) as active:
+            run_ids[str(model_name)] = active.info.run_id
             mlflow.set_tags({**tags, "model": model_name})
             checks = (behavior or {}).get(model_name)
             if checks is not None:
@@ -151,22 +165,61 @@ def log_runs(
                         f"test_{row.metric}_ci_high": row.ci_high,
                     }
                 )
+    return run_ids
+
+
+def select_challenger(
+    summary: pd.DataFrame,
+    gates: dict[str, GateResult],
+    behavior: dict[str, list[CheckResult]],
+    champion_gates: dict[str, GateResult] | None,
+) -> str | None:
+    """Best promotable candidate by test log-loss (ADR 0015), or None.
+
+    Promotable = passes the gate vs the reference rule, every behavioural check
+    and, if a champion exists, the gate vs the champion.
+    """
+    promotable = [
+        name
+        for name, gate in gates.items()
+        if gate.passed
+        and all_passed(behavior[name])
+        and (champion_gates is None or champion_gates[name].passed)
+    ]
+    if not promotable:
+        return None
+    loss = summary[summary["metric"] == "log_loss"].set_index("model")["value"]
+    return min(promotable, key=lambda name: loss[name])
 
 
 def run(cfg: ProjectConfig, settings: Settings) -> pd.DataFrame:
     touchpoints = pd.read_parquet(cfg.data.touchpoints_path)
     points, features = build_dataset(touchpoints, cfg)
+    use_experiment(
+        settings.mlflow_tracking_uri,
+        cfg.propensity.experiment_name,
+        settings.mlflow_artifact_location,
+    )
+    registry_name = cfg.propensity.registered_model_name
     models = candidate_models(cfg)
+    champion = load_alias(registry_name, CHAMPION)
+    if champion is not None:
+        models["champion"] = PrefittedModel(champion)
     summary, boot = evaluate_models(
         models, points, features, cfg.propensity.bootstrap_samples, cfg.random_seed
     )
     gates = gate_results(boot, list(models), cfg.propensity.reference_model)
+    champion_gates = (
+        {m: evaluate_gate(boot, m, "champion") for m in gates}
+        if champion is not None
+        else None
+    )
     base_rate = float(points.loc[points["split"] == "train", "label"].mean())
     behavior = {name: run_behavioral_checks(models[name], base_rate) for name in gates}
     report = cfg.propensity.report_path
     report.parent.mkdir(parents=True, exist_ok=True)
     summary.to_csv(report, index=False)
-    log_runs(
+    run_ids = log_runs(
         summary,
         points,
         cfg,
@@ -197,6 +250,27 @@ def run(cfg: ProjectConfig, settings: Settings) -> pd.DataFrame:
             _fmt(gate.pr_auc_diff),
             _fmt(gate.brier_diff),
         )
+    challenger = select_challenger(summary, gates, behavior, champion_gates)
+    if challenger is None:
+        logger.info("No promotable candidate: registry unchanged")
+        return summary
+    test_rows = (points["split"] == "test").to_numpy()
+    gate = gates[challenger]
+    version_tags = {
+        **trace_tags(cfg.data.touchpoints_path),
+        "model": challenger,
+        "gate_reference": gate.reference,
+        "gate_log_loss_diff_ci": _fmt(gate.log_loss_diff),
+        "beats_champion": str(champion_gates is not None),
+    }
+    register_challenger(
+        run_ids[challenger],
+        models[challenger],
+        features[test_rows].head(100),
+        registry_name,
+        version_tags,
+    )
+    logger.info('Review it in MLflow, then: uv run poe promote --reason "<why>"')
     return summary
 
 

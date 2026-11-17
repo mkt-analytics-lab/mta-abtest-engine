@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     config_path: Path = Path("configs/config.yaml")
     model_path: Path = Path("models/model.joblib")
     mlflow_tracking_uri: str = "sqlite:///mlflow.db"
+    # Where new experiments store artifacts (models, json). Local folder by
+    # default; a bucket (gs://...) when a team shares the tracking server.
+    mlflow_artifact_location: str = "mlartifacts"
     log_level: str = "INFO"
     # Google Cloud project that runs (and pays for) BigQuery jobs. Optional so
     # that tests and CI work without cloud access; required by warehouse code.
@@ -74,6 +77,7 @@ class EvaluationConfig(BaseModel):
 
 class PropensityConfig(BaseModel):
     experiment_name: str
+    registered_model_name: str = "session-propensity"
     report_path: Path
     bootstrap_samples: int = Field(ge=50, le=5000)
     reference_model: str = "funnel_rule"

@@ -62,3 +62,9 @@ def _collect_sqlite_connections():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", ResourceWarning)
         gc.collect()
+
+
+@pytest.fixture(autouse=True)
+def _artifacts_in_tmp(tmp_path, monkeypatch):
+    """MLflow artifacts written by tests go to tmp_path, never into the repo."""
+    monkeypatch.setenv("APP_MLFLOW_ARTIFACT_LOCATION", str(tmp_path / "artifacts"))

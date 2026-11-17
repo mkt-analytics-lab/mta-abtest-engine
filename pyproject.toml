@@ -162,6 +162,10 @@ cmd = "python -m mta_abtest_engine.pipelines.propensity"
 help = "Optuna tuning of the GBM on a temporal validation inside train (ADR 0013)"
 cmd = "python -m mta_abtest_engine.training.tuning"
 
+[tool.poe.tasks.promote]
+help = "Promote the MLflow challenger to champion: poe promote --reason \"...\" [--version N]"
+cmd = "python -m mta_abtest_engine.training.registry"
+
 [tool.poe.tasks.serve]
 help = "Run the prediction API locally with auto-reload"
 cmd = "uvicorn mta_abtest_engine.serving.app:app --reload --port 8000"
