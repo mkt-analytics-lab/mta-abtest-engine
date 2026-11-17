@@ -69,3 +69,7 @@ works end to end. Each entry: where to look, the idea, how to verify it yourself
 | A contract for pluggable sources (models, GA4, MMM) | `ChannelCreditSchema` | `test_contract_rejects_unknown_channel_and_duplicates` |
 | Bootstrap by resampling path counts (multinomial) | `markov_attribution` | Width of `conversions_ci_*` per channel |
 | A modelling choice can create a fake finding (checkout states = disguised last touch) | ADR 0016 update | `role` column in `attribution_states.csv` |
+| Batch scoring as of a date (no future history) | `serving/batch.py` | `test_scoring_never_uses_later_history` |
+| Idempotent writes: partition decorator + WRITE_TRUNCATE | `serving/publish.py` | Re-run `poe score` for a day: row count unchanged |
+| Dataset ownership (dbt -> marts, Python -> results) | ADR 0017 | BigQuery: `mta_marts` vs `mta_results` |
+| Every score carries the model version | `propensity_scores.model_version` | Compare with the registry champion |

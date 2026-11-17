@@ -56,6 +56,11 @@ attribution:
   report_dir: reports
   bootstrap_samples: 100     # resamples of journeys for channel-credit intervals
 
+serving:
+  # Batch scoring and result tables for Looker (ADR 0017)
+  results_dataset: mta_results   # owned by Python; dbt owns mta_marts
+  scores_table: propensity_scores
+
 tuning:
   # Optuna search for the GBM (ADR 0013). January (test) is never used here:
   # sub-train = scoring points whose label window ends before validation_start,

@@ -170,6 +170,16 @@ cmd = "python -m mta_abtest_engine.training.registry"
 help = "Markov journey attribution + heuristic baselines, channel benchmark table"
 cmd = "python -m mta_abtest_engine.pipelines.attribution"
 
+[tool.poe.tasks.score]
+help = "Batch-score sessions with the champion and publish to BigQuery: poe score --start YYYY-MM-DD [--end ...]"
+cmd = "python -m mta_abtest_engine.serving.batch score"
+envfile = ".env"
+
+[tool.poe.tasks.publish-attribution]
+help = "Publish attribution reports to BigQuery (mta_results) for Looker"
+cmd = "python -m mta_abtest_engine.serving.batch publish-attribution"
+envfile = ".env"
+
 [tool.poe.tasks.serve]
 help = "Run the prediction API locally with auto-reload"
 cmd = "uvicorn mta_abtest_engine.serving.app:app --reload --port 8000"

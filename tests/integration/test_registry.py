@@ -136,3 +136,16 @@ def test_select_challenger(gates, behaviour, champion_gates, expected):
         else {m: _gate(p, m, "champion") for m, p in champion_gates.items()},
     )
     assert chosen == expected
+
+
+def test_batch_loads_the_champion_with_its_version(tracking, fitted):
+    from mta_abtest_engine.serving.batch import load_champion
+
+    with pytest.raises(RuntimeError, match="No champion"):
+        load_champion(NAME)
+    model, X = fitted
+    _register(tracking, model, X)
+    registry.promote(NAME, "ok", user="ci")
+    champion, version = load_champion(NAME)
+    assert version == "1"
+    np.testing.assert_allclose(champion.predict_proba(X), model.predict_proba(X))

@@ -91,6 +91,11 @@ class AttributionConfig(BaseModel):
     bootstrap_samples: int = Field(ge=20, le=2000)
 
 
+class ServingConfig(BaseModel):
+    results_dataset: str = Field(min_length=1)
+    scores_table: str = Field(min_length=1)
+
+
 class ParamSpec(BaseModel):
     type: Literal["int", "float"]
     low: float
@@ -142,6 +147,7 @@ class ProjectConfig(BaseModel):
     evaluation: EvaluationConfig
     propensity: PropensityConfig
     attribution: AttributionConfig
+    serving: ServingConfig
     tuning: TuningConfig
     tracking: TrackingConfig
 
