@@ -17,7 +17,7 @@ tested. Results live in `mta_marts` (dbt) and `mta_results` (Python).
 
 ## Decision
 Option 3: `dbt/models/reporting/` -> dataset `mta_reporting` (views):
-`rpt_funnel_daily`, `rpt_channel_credit`, `rpt_journey_states`,
+`rpt_funnel_daily`, `rpt_funnel_steps` (long format for the funnel chart), `rpt_channel_credit`, `rpt_journey_states`,
 `rpt_scores_daily`, `rpt_monitoring`. Python tables are declared as a dbt
 source (`results`), so lineage covers Python outputs too. A build guide lives in
 `docs/looker_dashboard.md` (4 pages: funnel, attribution, re-engagement, model

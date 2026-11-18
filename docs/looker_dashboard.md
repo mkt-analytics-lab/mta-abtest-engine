@@ -10,7 +10,7 @@ uv run poe dbt-build                 # builds mta_reporting views (needs mta_res
 ```
 
 Check in BigQuery that `mta_reporting` contains: `rpt_funnel_daily`,
-`rpt_channel_credit`, `rpt_journey_states`, `rpt_scores_daily`, `rpt_monitoring`.
+`rpt_funnel_steps`, `rpt_channel_credit`, `rpt_journey_states`, `rpt_scores_daily`, `rpt_monitoring`.
 
 ## 1. Create the report and data sources
 
@@ -30,7 +30,7 @@ well inside the free tier and the cost guards (ADR 0003).
 | Chart | Setup |
 |---|---|
 | Scorecards | `sessions`, `reached_cart`, `purchases`, `revenue_usd` (SUM) |
-| Funnel (bar chart, horizontal) | Metrics in order: `sessions`, `reached_product`, `reached_cart`, `reached_checkout`, `purchases` (SUM). Shows the biggest drop: product -> cart |
+| Funnel (native funnel chart, data source `rpt_funnel_steps`) | Dimension `step`, metric `step_sessions` (SUM), sort `step` ascending, style *Smoothed bar*, labels *Number + Percentage* (% of previous). Shows the biggest drop: product -> cart |
 | Drop-off by entry channel (table) | Dimension `channel_group`; metrics as above; add calculated field `cart_rate = SUM(reached_cart) / SUM(reached_product)` |
 | Sessions over time (time series) | Dimension `session_date`, breakdown `channel_group`, metric `sessions`. Add a text box on Jan 21-22: *"Tracking change: channel mix not comparable after this date (ADR 0021)"* |
 | Controls | Date range control; drop-down on `channel_group` |
